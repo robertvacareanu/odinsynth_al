@@ -1,1 +1,1 @@
-# odinsynth_al
+# Active Learning, Sequence Tagging
