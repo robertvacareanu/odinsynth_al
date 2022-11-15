@@ -11,5 +11,6 @@ pip install evaluate
 pip install accelerate
 pip install sklearn
 pip install seaborn
+pip install seqeval # Needed for metric computation with evaluate
 ```
 To check the exact versions, see the `environment.yml` file.
