@@ -15,7 +15,7 @@ data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer, return_t
 model = AutoModelForTokenClassification.from_pretrained("distilbert-base-uncased", num_labels=14)
 
 metric = evaluate.load("seqeval")
-def compute_metrics(predictions, labels, id_to_label):
+def compute_metrics(predictions, labels, id_to_label, verbose=False):
     predictions = np.argmax(predictions, axis=2)
 
     # Remove ignored index (special tokens)
@@ -29,12 +29,15 @@ def compute_metrics(predictions, labels, id_to_label):
     ]
 
     results = metric.compute(predictions=true_predictions, references=true_labels)
-    return {
-        "precision": results["overall_precision"],
-        "recall": results["overall_recall"],
-        "f1": results["overall_f1"],
-        "accuracy": results["overall_accuracy"],
-    }
+    if verbose:
+        return results
+    else:
+        return {
+            "precision": results["overall_precision"],
+            "recall": results["overall_recall"],
+            "f1": results["overall_f1"],
+            "accuracy": results["overall_accuracy"],
+        }
 
 label_to_id = {'O': 0, 'B-PER': 1, 'I-PER': 2, 'B-ORG': 3, 'I-ORG': 4, 'B-LOC': 5, 'I-LOC': 6, 'B-MISC': 7, 'I-MISC': 8}
 id_to_label = {v:k for (k,v) in label_to_id.items()}
@@ -56,7 +59,7 @@ trainer = Trainer(
     eval_dataset=tokenized_conll2003["validation"],
     tokenizer=tokenizer,
     data_collator=data_collator,
-    compute_metrics=lambda x: compute_metrics(x[0], x[1], id_to_label)
+    compute_metrics=lambda x: compute_metrics(x[0], x[1], id_to_label, verbose=True)
 )
 
 trainer.train()
