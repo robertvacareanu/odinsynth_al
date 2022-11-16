@@ -7,20 +7,8 @@ to the indices we want to select for annotations (as per AL
 paradigm))
 Particular to this file, we model each token prediction inside a sentence,
 hence the `List[List[List[float]]]` type. 
-We perform the decision based on the individual token's prediction, and,
-at the end, annotate only that span
-
-In-depth explanation of the rules:
-Let us assume we have the following sentence:
-`John was born in New York City and works at the United Airlines`
-
-For simplicity, let us assume that each word in the previous sentence
-has a single 
-The rules employed here are as follows:
-- Assuming `born` was selected for annotation
-    - return `O` for `born`
-- Assuming `New` was selected for annotation
-    - return 'B-LOC I-LOC I-LOC' for 'New York City'
+We perform the decision based on the individual token's prediction,
+but at the end we return sentences
 """
 import random
 from scipy.stats import entropy
@@ -39,22 +27,7 @@ In this query implementation we select the top `k` by entropy
 Higher entropy means more uncertainty
 """
 def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
-    # Calculate the entropy of each token prediction
-    entropies = [[entropy(y) for y in x] for x in predictions]
-
-    # Unroll everything, but keeping track of the sentence id and token id
-    entropies_and_sentence_ids = []
-    for sentence_id, sentence in enumerate(entropies):
-        for token_pos, token_entropy in enumerate(sentence):
-            entropies_and_sentence_ids.append((sentence_id, token_pos, token_entropy))
-    
-    
-    entropies_and_sentence_ids_sorted = sorted(entropies_and_sentence_ids, key=lambda x: x[2], reverse=True)
-    
-    # These are the selections to be annotated
-    # A list of (sentence_id, token_position)
-    selection = [(x[0], x[1]) for x in entropies_and_sentence_ids_sorted[:k]]
-    
+    entropies = [max([entropy(y) for y in x]) for x in predictions]
 
     entropies_and_indices = list(zip(range(len(entropies)), entropies))
     return [x[0] for x in sorted(entropies_and_indices, key=lambda x: x[1], reverse=True)[:k]]
