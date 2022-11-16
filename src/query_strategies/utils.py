@@ -31,6 +31,11 @@ def filter_invalid_token_predictions(predictions):
 
 """
 :param dataset -> something that looks like a Huggingface dataset
+            each line dictionary should have, additionally,
+            a field called `al_labels` which stands for 
+            `active learning labels`. This is the field which 
+            contains the tokens that were annotated (either initially
+            or by querying the user)
 :param selected_dataset_so_far -> what we annotated so far;
             we need to know this because we might select different
             spans in the same sentence; So we don't want to throw
@@ -82,14 +87,14 @@ def annotate(dataset, selected_dataset_so_far: List[Tuple[int, Any]], selections
             # Otherwise, get a clean list of `-100`
             # Also, we get a copy of it
             if sid in selected_dataset_so_far_dict:
-                labels_so_far = [*selected_dataset_so_far_dict[sid]['labels']]
+                labels_so_far = [*selected_dataset_so_far_dict[sid]['al_labels']]
             else:
                 labels_so_far = [-100] * len(line_labels)
                 
             for token_to_annotate in tid:
                 labels_so_far[token_to_annotate] = line_labels[token_to_annotate]
 
-            annotated_data.append((sid, {**line_dict_copy, 'labels': labels_so_far}))
+            annotated_data.append((sid, {**line_dict_copy, 'al_labels': labels_so_far}))
         
     # Now we also have to add all the examples that were annotated before
     # We skip over the ones with the same sentence id as the ones added
