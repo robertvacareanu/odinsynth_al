@@ -27,3 +27,23 @@ def prediction_entropy_query(predictions: List[List[float]], k=5) -> List[int]:
 
     entropies_and_indices = list(zip(range(len(entropies)), entropies))
     return [x[0] for x in sorted(entropies_and_indices, key=lambda x: x[1], reverse=True)[:k]]
+
+
+"""
+In this query implementation we select the top `k` by difference
+between top two predictions
+"""
+def breaking_ties_query(predictions: List[List[float]], k=5) -> List[int]:
+    margins = [sorted(x, reverse=True)[:2] for x in predictions]
+    margins = [x[0] - x[1] for x in margins]
+
+    margins_and_indices = list(zip(range(len(margins)), margins))
+
+    sorted_margins_and_indices = sorted(margins_and_indices, key=lambda x: x[1])
+
+    return [x[0] for x in sorted_margins_and_indices[:k]]
+
+
+
+
+
