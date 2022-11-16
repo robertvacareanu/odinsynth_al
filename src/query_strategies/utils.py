@@ -67,7 +67,7 @@ def annotate(dataset, selected_dataset_so_far: List[Tuple[int, Any]], selections
     if tokens_id is None:
         for sid, line in zip(sentences_id, selected_dataset):
             line_dict_copy = {**line}
-            annotated_data.append(line_dict_copy)
+            annotated_data.append((sid, line_dict_copy))
     # In this setting we select individual tokens to annotate
     # This is because we have a token_id so we know which tokens
     # we wish to select
