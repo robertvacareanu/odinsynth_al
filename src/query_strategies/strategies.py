@@ -43,3 +43,12 @@ def breaking_ties_query(predictions: List[List[float]], k=5, **kwargs) -> List[i
 
     return [x[0] for x in sorted_margins_and_indices[:k]]
 
+
+def least_confidence_query(predictions: List[List[float]], k=5, **kwargs) -> List[int]:
+    prediction_confidence = [sorted(x, reverse=True)[0] for x in predictions]
+
+    prediction_confidence_and_indices = list(zip(range(len(prediction_confidence)), prediction_confidence))
+    sorted_prediction_confidence_and_indices = sorted(prediction_confidence_and_indices, key=lambda x: x[1])
+
+    return [x[0] for x in sorted_prediction_confidence_and_indices[:k]]
+
