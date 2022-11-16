@@ -1,3 +1,6 @@
+import evaluate
+import numpy as np
+
 """
 Adapted from: https://huggingface.co/docs/transformers/tasks/token_classification
 
@@ -32,3 +35,26 @@ def tokenize_and_align_labels(tokenizer, examples):
     tokenized_inputs["labels"] = labels
     return tokenized_inputs
 
+def compute_metrics(predictions, labels, id_to_label, metric=evaluate.load("seqeval"), verbose=False):
+    predictions = np.argmax(predictions, axis=2)
+
+    # Remove ignored index (special tokens)
+    true_predictions = [
+        [id_to_label[p] for (p, l) in zip(prediction, label) if l != -100]
+        for prediction, label in zip(predictions, labels)
+    ]
+    true_labels = [
+        [id_to_label[l] for (p, l) in zip(prediction, label) if l != -100]
+        for prediction, label in zip(predictions, labels)
+    ]
+
+    results = metric.compute(predictions=true_predictions, references=true_labels)
+    if verbose:
+        return results
+    else:
+        return {
+            "precision": results["overall_precision"],
+            "recall": results["overall_recall"],
+            "f1": results["overall_f1"],
+            "accuracy": results["overall_accuracy"],
+        }
