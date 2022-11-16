@@ -15,7 +15,7 @@ from typing import List
 In this query implementation we just select random
 """
 def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
-    return random.choices(list(range(len(predictions))), k=k)
+    return random.sample(list(range(len(predictions))), k=k)
 
 
 """
