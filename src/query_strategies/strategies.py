@@ -14,7 +14,7 @@ from typing import List
 """
 In this query implementation we just select random
 """
-def random_query(predictions: List[List[float]], k=5) -> List[int]:
+def random_query(predictions: List[List[float]], k=5, **kwargs) -> List[int]:
     random.choices(list(range(len(predictions))), k=k)
 
 
@@ -22,7 +22,7 @@ def random_query(predictions: List[List[float]], k=5) -> List[int]:
 In this query implementation we select the top `k` by entropy
 Higher entropy means more uncertainty
 """
-def prediction_entropy_query(predictions: List[List[float]], k=5) -> List[int]:
+def prediction_entropy_query(predictions: List[List[float]], k=5, **kwargs) -> List[int]:
     entropies = [entropy(x) for x in predictions]
 
     entropies_and_indices = list(zip(range(len(entropies)), entropies))
@@ -33,7 +33,7 @@ def prediction_entropy_query(predictions: List[List[float]], k=5) -> List[int]:
 In this query implementation we select the top `k` by difference
 between top two predictions
 """
-def breaking_ties_query(predictions: List[List[float]], k=5) -> List[int]:
+def breaking_ties_query(predictions: List[List[float]], k=5, **kwargs) -> List[int]:
     margins = [sorted(x, reverse=True)[:2] for x in predictions]
     margins = [x[0] - x[1] for x in margins]
 
@@ -42,8 +42,4 @@ def breaking_ties_query(predictions: List[List[float]], k=5) -> List[int]:
     sorted_margins_and_indices = sorted(margins_and_indices, key=lambda x: x[1])
 
     return [x[0] for x in sorted_margins_and_indices[:k]]
-
-
-
-
 
