@@ -25,3 +25,6 @@ def filter_invalid_token_predictions(predictions):
                 current_sentence.append(scipy.special.softmax(token_scores, axis=0).tolist())
 
         predictions_without_invalids.append(current_sentence)
+    
+    return predictions_without_invalids
+
