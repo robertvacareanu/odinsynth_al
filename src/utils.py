@@ -58,3 +58,20 @@ def compute_metrics(predictions, labels, id_to_label, metric=evaluate.load("seqe
             "f1": results["overall_f1"],
             "accuracy": results["overall_accuracy"],
         }
+
+def verbose_performance_printing(predictions, ali):
+    print("############")
+    print(f"AL Iteration: {ali}")
+    print("-------Metrics-------")
+    print("Overall")
+    print('Overall Precision:', predictions.metrics['test_overall_precision'])
+    print('Overall Recall:   ', predictions.metrics['test_overall_recall'])
+    print('Overall F1:       ', predictions.metrics['test_overall_f1'])
+    print('Overall Accuracy  ', predictions.metrics['test_overall_accuracy'])
+    print("Per Tag")
+    for tag in ['PER', 'LOC', 'ORG', 'MISC',]:
+        scores_per_tag = predictions.metrics[f'test_{tag}']
+        print(f'{tag} - {scores_per_tag}')
+    print("-------Metrics-------")
+    print("############")
+    print("\n\n")
