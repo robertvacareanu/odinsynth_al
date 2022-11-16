@@ -1,4 +1,10 @@
 """
+`strategies_sc` strategies to query at a sentence classification level
+The sentence classification part is important because this means we 
+will have a `List[float]` for each data point. As opposed to
+token classification where each data point has a `List[List[float]]`
+because we make predictions for each token
+
 This file contains the associated code for querying
 That is, given a list of datapoints, each with an 
 associated predictions (here modelled as a list

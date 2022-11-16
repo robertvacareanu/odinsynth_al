@@ -5,6 +5,10 @@ associated predictions (here modelled as a list
 of floats), we return a list of indices, corresponding
 to the indices we want to select for annotations (as per AL
 paradigm))
+Particular to this file, we model each token prediction inside a sentence,
+hence the `List[List[List[float]]]` type. 
+We perform the decision based on the individual token's prediction,
+but at the end we return sentences
 """
 import random
 from scipy.stats import entropy
@@ -51,6 +55,7 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     sorted_prediction_confidence_and_indices = sorted(prediction_confidence_and_indices, key=lambda x: x[1])
 
     return [x[0] for x in sorted_prediction_confidence_and_indices[:k]]
+
 
 """
 Little test
