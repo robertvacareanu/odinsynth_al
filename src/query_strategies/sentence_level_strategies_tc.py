@@ -29,7 +29,8 @@ In this query implementation we select the top `k` by entropy
 Higher entropy means more uncertainty
 """
 def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
-    entropies = [max([entropy(y) for y in x]) for x in predictions]
+    aggregation_function = kwargs.get('aggregation_function', max)
+    entropies = [aggregation_function([entropy(y) for y in x]) for x in predictions]
 
     entropies_and_indices = list(zip(range(len(entropies)), entropies))
     return [x[0] for x in sorted(entropies_and_indices, key=lambda x: x[1], reverse=True)[:k]]
@@ -40,8 +41,9 @@ In this query implementation we select the top `k` by difference
 between top two predictions
 """
 def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
+    aggregation_function = kwargs.get('aggregation_function', min)
     margins = [[sorted(y, reverse=True)[:2] for y in x] for x in predictions]
-    margins = [min([y[0] - y[1] for y in x]) for x in margins]
+    margins = [aggregation_function([y[0] - y[1] for y in x]) for x in margins]
 
     margins_and_indices = list(zip(range(len(margins)), margins))
 
@@ -51,7 +53,8 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
 
 
 def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
-    prediction_confidence = [min([sorted(y, reverse=True)[-1] for y in x]) for x in predictions]
+    aggregation_function = kwargs.get('aggregation_function', min)
+    prediction_confidence = [aggregation_function([sorted(y, reverse=True)[-1] for y in x]) for x in predictions]
 
     prediction_confidence_and_indices = list(zip(range(len(prediction_confidence)), prediction_confidence))
     sorted_prediction_confidence_and_indices = sorted(prediction_confidence_and_indices, key=lambda x: x[1])
