@@ -1,4 +1,6 @@
 """
+Query strategy at sentence level
+
 This file contains the associated code for querying
 That is, given a list of datapoints, each with an 
 associated predictions (here modelled as a list
