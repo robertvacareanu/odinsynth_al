@@ -1,4 +1,5 @@
-from typing import Any, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
+from itertools import takewhile
 import scipy
 
 
@@ -112,3 +113,58 @@ def annotate(dataset, selected_dataset_so_far: List[Tuple[int, Any]], selections
 
     return original_data + annotated_data
 
+
+"""
+When we operate at span-level query, we want to:
+- take only that token when that token's label is `O`
+- take the full entity when that token's label is not `O`
+NOTE: We are making use of the label here, but only for query simulation
+Realistically, the situation would be something like:
+    You selected a token. You give to the user the token + a window
+    If that token is part of a named entity, annotate the full named entity
+    Otherwise just say `O`.
+
+
+:param labels     : the gold labels
+:param id_to_label: a dictionary from a label id to str (i.e. 1 -> B-PER) 
+:param token_id   : the token we chose to annotate
+"""
+def take_full_entity(labels: List[int], id_to_label: Dict[int, str], token_id) -> List[int]:
+    labels_str = [id_to_label[x] for x in labels]
+    # If the gold label is 'O', we annotate only that one
+    if labels_str[token_id] == 'O':
+        return [token_id]
+    
+
+    # Now we know that it is not an 'O', we have to check whether it is a
+    # Beginning of an entity (i.e. 'B-') or if it is inside (i.e. 'I-')
+    
+    token_ids = []
+    token_id_label = labels_str[token_id]
+    # If it is 'B-', we take to the left as long as the tokens to the left
+    # are of type 'I-' and the same named entity
+    if token_id_label[0:2] == 'B-':
+        token_ids.append(token_id)
+        output = takewhile(lambda x: x[1][:2] == 'I-' and x[1][2:] == token_id_label[2:], list(enumerate(labels_str))[(token_id+1):])
+        output = list(output)
+        token_ids += [x[0] for x in output]
+    # If it is 'I-' it means we are in the middle of an entity
+    # We take to the left and to the right
+    elif token_id_label[0:2] == 'I-':
+        # Take all 'I-' to the left
+        output_left = takewhile(lambda x: labels_str[x[0]][:2] == 'I-' and labels_str[x[0]][2:] == token_id_label[2:], reversed(list(enumerate(labels_str))[:token_id]))
+        output_left = list(reversed(list(output_left)))
+        # We took all 'I-' to the left
+        # This means that tbe very next token should be 'B-'. Otherwise, throw an error
+        if labels_str[output_left[0][0]-1][0:2] != 'B-' and labels_str[output_left[0][0]-1][2:] != token_id_label[2:]:
+            raise ValueError(f"Invalid sequence. We should have a `B-` with the same tag, but we do not. It is {labels_str}. Is everything ok?")
+        output = [output_left[0][0]-1] + output
+        # Take all 'I-' to the right
+        output_right = takewhile(lambda x: x[1][:2] == 'I-' and x[1][2:] == token_id_label[2:], list(enumerate(labels_str))[(token_id+1):])
+        output_right = list(output_right)
+        token_ids += [output_left[0][0]-1] + [x[0] for x in output_left] + [x[0] for x in output_right]
+    else:
+        raise ValueError("Unknown label. It should be either `B-*` or `I-*`. Is everything ok?")
+
+
+    return token_ids
