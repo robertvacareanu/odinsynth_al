@@ -31,7 +31,11 @@ from typing import List
 In this query implementation we just select random
 """
 def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
-    return random.sample(list(range(len(predictions))), k=k)
+    token_and_sentence_ids = []
+    for sid, sentence in enumerate(predictions):
+        for tid, token in enumerate(sentence):
+            token_and_sentence_ids.append((sid, [tid]))
+    return random.sample(list(range(len(token_and_sentence_ids))), k=k)
 
 
 """
@@ -39,10 +43,17 @@ In this query implementation we select the top `k` by entropy
 Higher entropy means more uncertainty
 """
 def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
-    entropies = [max([entropy(y) for y in x]) for x in predictions]
+    token_and_sentence_ids = []
+    for sid, sentence in enumerate(predictions):
+        for tid, token in enumerate(sentence):
+            token_and_sentence_ids.append((sid, [tid], entropy(token)))
 
-    entropies_and_indices = list(zip(range(len(entropies)), entropies))
-    return [x[0] for x in sorted(entropies_and_indices, key=lambda x: x[1], reverse=True)[:k]]
+    # Sort by entropy in reverse
+    sorted_data = sorted(token_and_sentence_ids, key=lambda x: x[2], reverse=True)
+
+    selected_data = [(x[1], x[2]) for x in sorted_data[:k]]
+
+    return selected_data
 
 
 """
@@ -50,51 +61,31 @@ In this query implementation we select the top `k` by difference
 between top two predictions
 """
 def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
-    margins = [[sorted(y, reverse=True)[:2] for y in x] for x in predictions]
-    margins = [min([y[0] - y[1] for y in x]) for x in margins]
+    token_and_sentence_ids = []
+    for sid, sentence in enumerate(predictions):
+        for tid, token in enumerate(sentence):
+            scores = sorted(token, reverse=True)[:2]
+            token_and_sentence_ids.append((sid, [tid], scores[0] - scores[1]))
 
-    margins_and_indices = list(zip(range(len(margins)), margins))
+    # Sort by margins
+    sorted_data = sorted(token_and_sentence_ids, key=lambda x: x[2])
 
-    sorted_margins_and_indices = sorted(margins_and_indices, key=lambda x: x[1])
+    selected_data = [(x[1], x[2]) for x in sorted_data[:k]]
 
-    return [x[0] for x in sorted_margins_and_indices[:k]]
+    return selected_data
 
 
 def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
-    prediction_confidence = [min([sorted(y, reverse=True)[-1] for y in x]) for x in predictions]
+    token_and_sentence_ids = []
+    for sid, sentence in enumerate(predictions):
+        for tid, token in enumerate(sentence):
+            scores = sorted(token, reverse=True)
+            token_and_sentence_ids.append((sid, [tid], scores[0]))
 
-    prediction_confidence_and_indices = list(zip(range(len(prediction_confidence)), prediction_confidence))
-    sorted_prediction_confidence_and_indices = sorted(prediction_confidence_and_indices, key=lambda x: x[1])
+    # Sort by confidence in reverse
+    sorted_data = sorted(token_and_sentence_ids, key=lambda x: x[2])
 
-    return [x[0] for x in sorted_prediction_confidence_and_indices[:k]]
+    selected_data = [(x[1], x[2]) for x in sorted_data[:k]]
 
+    return selected_data
 
-"""
-Little test
-"""
-if __name__ == "__main__":
-    predictions = [
-        [
-            # Tokens in sentence 1
-            [0.99, 0.01, 0.0, 0.0], [0.98, 0.01, 0.01, 0.0], [0.5, 0.4, 0.05, 0.05], [0.5, 0.4, 0.05, 0.05], [0.97, 0.01, 0.01, 0.01], [0.96, 0.02, 0.01, 0.01], [0.95, 0.03, 0.01, 0.01], [0.94, 0.04, 0.01, 0.01],
-        ],
-        [
-            # Tokens in sentence 2
-            [0.99, 0.01, 0.0, 0.0], [0.98, 0.01, 0.01, 0.0], [0.45, 0.44, 0.11, 0.0], [0.5, 0.4, 0.05, 0.05], [0.97, 0.01, 0.01, 0.01], [0.96, 0.02, 0.01, 0.01], [0.95, 0.03, 0.01, 0.01], [0.94, 0.04, 0.01, 0.01],
-        ],
-        [
-            # Tokens in sentence 3
-            [0.99, 0.01, 0.0, 0.0], [0.98, 0.01, 0.01, 0.0], [0.97, 0.01, 0.01, 0.01], [0.96, 0.02, 0.01, 0.01], [0.95, 0.03, 0.01, 0.01], [0.94, 0.04, 0.01, 0.01],
-        ],
-        [
-            # Tokens in sentence 4
-            [0.99, 0.01, 0.0, 0.0], [0.98, 0.01, 0.01, 0.0], [0.97, 0.01, 0.01, 0.01], [0.96, 0.02, 0.01, 0.01], [0.95, 0.03, 0.01, 0.01], [0.94, 0.04, 0.01, 0.01],
-        ],
-        [
-            # Tokens in sentence 5
-            [0.99, 0.01, 0.0, 0.0], [0.98, 0.01, 0.01, 0.0], [0.97, 0.01, 0.01, 0.01], [0.96, 0.02, 0.01, 0.01], [0.95, 0.03, 0.01, 0.01], [0.94, 0.04, 0.01, 0.01],
-        ],
-    ]
-    print(breaking_ties_query(predictions, k=2))
-    print(random_query(predictions, k=2))
-    print(prediction_entropy_query(predictions, k=2))
