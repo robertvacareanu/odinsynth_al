@@ -1,6 +1,6 @@
 import unittest
 
-from src.query_strategies.utils import annotate
+from src.query_strategies.utils import annotate, take_full_entity
 from datasets import load_dataset
 
 class TestEntityLevelStrategiesTokenClassification(unittest.TestCase):
@@ -82,6 +82,79 @@ class TestEntityLevelStrategiesTokenClassification(unittest.TestCase):
         self.assertEquals(new_sentence_with_id1, conll2003[1])
         self.assertEquals(new_sentence_with_id2, conll2003[2])
         self.assertEquals(new_sentence_with_id3, conll2003[3])
+
+    def test_take_full_entity(self):
+        label_to_id = {'O': 0, 'B-PER': 1, 'I-PER': 2, 'B-ORG': 3, 'I-ORG': 4, 'B-LOC': 5, 'I-LOC': 6, 'B-MISC': 7, 'I-MISC': 8}
+        id_to_label = {v:k for (k,v) in label_to_id.items()}
+        #         0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39
+        labels = [0, 1, 2, 2, 2, 1, 2, 1, 2, 3, 4, 4, 4, 0, 1, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+
+        # We give an 'O'
+        output = take_full_entity(labels, id_to_label, 0)
+        self.assertEqual(len(output), 1)
+        self.assertEqual(output, [0])
+
+        # We give an 'O'
+        output = take_full_entity(labels, id_to_label, 13)
+        self.assertEqual(len(output), 1)
+        self.assertEqual(output, [13])
+
+        # We give a B-
+        output = take_full_entity(labels, id_to_label, 1)
+        self.assertEqual(len(output), 4)
+        self.assertEqual(output, [1,2,3,4])
+
+        # We give a B-
+        output = take_full_entity(labels, id_to_label, 17)
+        self.assertEqual(len(output), 1)
+        self.assertEqual(output, [17])
+
+        # We give a B-
+        output = take_full_entity(labels, id_to_label, 26)
+        self.assertEqual(len(output), 9)
+        self.assertEqual(output, [26,27,28,29,30,31,32,33,34])
+
+        # We give a I-
+        output = take_full_entity(labels, id_to_label, 2)
+        self.assertEqual(len(output), 4)
+        self.assertEqual(output, [1,2,3,4])
+
+        # We give a I-
+        output = take_full_entity(labels, id_to_label, 8)
+        self.assertEqual(len(output), 2)
+        self.assertEqual(output, [7, 8])
+
+        # We give a I-
+        output = take_full_entity(labels, id_to_label, 27)
+        self.assertEqual(len(output), 9)
+        self.assertEqual(output, [26,27,28,29,30,31,32,33,34])
+
+        # We give a I-
+        output = take_full_entity(labels, id_to_label, 28)
+        self.assertEqual(len(output), 9)
+        self.assertEqual(output, [26,27,28,29,30,31,32,33,34])
+
+        # We give a I-
+        output = take_full_entity(labels, id_to_label, 29)
+        self.assertEqual(len(output), 9)
+        self.assertEqual(output, [26,27,28,29,30,31,32,33,34])
+
+        # We give a I-
+        output = take_full_entity(labels, id_to_label, 30)
+        self.assertEqual(len(output), 9)
+        self.assertEqual(output, [26,27,28,29,30,31,32,33,34])
+
+        # We give a I-
+        output = take_full_entity(labels, id_to_label, 33)
+        self.assertEqual(len(output), 9)
+        self.assertEqual(output, [26,27,28,29,30,31,32,33,34])
+
+        # We give a I-
+        output = take_full_entity(labels, id_to_label, 34)
+        self.assertEqual(len(output), 9)
+        self.assertEqual(output, [26,27,28,29,30,31,32,33,34])
+
+
 
 if __name__ == '__main__':
     unittest.main()
