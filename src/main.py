@@ -2,16 +2,34 @@ import json
 from src.arg_parser import get_argparser
 from src.dataset_utils import get_conll2003
 from src.query_strategies.utils import filter_invalid_token_predictions
-from src.utils import compute_metrics, init_random, tokenize_and_align_labels, verbose_performance_printing
+from src.utils import ALAnnotation, compute_metrics, init_random, tokenize_and_align_labels, verbose_performance_printing
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
 from transformers import DataCollatorForTokenClassification
 from transformers import AutoTokenizer
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 import evaluate
 import random
 import scipy
 from collections import Counter
-from src.query_strategies.sentence_level_strategies_tc import random_query, prediction_entropy_query, breaking_ties_query, least_confidence_query
+# from src.query_strategies.sentence_level_strategies_tc import random_query, prediction_entropy_query, breaking_ties_query, least_confidence_query
+from src.query_strategies.span_level_strategies_tc import random_query, prediction_entropy_query, breaking_ties_query, least_confidence_query
+
+"""
+TODO Make every query strategy return the following thing:
+    List[(Int, List[ALAnnotation])]
+So a tuple of integers and list
+The first element of the tuple is the sentence id (in the original dataset space)
+The second elmenet in the tuple is the ner annotations
+This is because we investigate differnet levels of costs:
+- sentence level
+- entity level
+- token level
+
+So we keep such a list in memory
+Then, for training, we select using the sentence ids
+Then, we iterate over each dict overwriting `labels` using our active_learning_labels
+This is done to ignore backpropagation on tokens we don't have annotations for
+"""
 
 init_random(1)
 args = vars(get_argparser().parse_args())
@@ -30,12 +48,14 @@ starting_size = int(len(conll2003['train']) * args['starting_size_ratio'])
 
 selected_indices = random.sample(range(0, len(conll2003['train'])), starting_size)
 selected_indices_set = set(selected_indices)
-selected_dataset_so_far = [conll2003['train'][x]['ner_tags'] for x in selected_indices]
+# This list holds what we have selected so far
+selected_dataset_so_far = dict([(x, ALAnnotation(x, conll2003['train'][x]['ner_tags'])) for x in selected_indices])
 
 tokenizer = AutoTokenizer.from_pretrained(args['underlying_model'])
 
 # Tokenize everything
 tokenized_conll2003 = conll2003.map(lambda x: tokenize_and_align_labels(tokenizer, x), batched=True)
+
 data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer, return_tensors="pt")
 metric = evaluate.load("seqeval")
 
@@ -49,7 +69,11 @@ all_results = []
 
 for active_learning_iteration in range(number_of_al_iterations):
     model = AutoModelForTokenClassification.from_pretrained(args['underlying_model'], num_labels=len(label_to_id))
-    data  = tokenized_conll2003["train"].select(selected_indices)
+
+    # Create the new dataset using all the selected indices
+    # Then, overwrite the labels by using only the labels we have annotated so far
+    data  = [{**conll2003["train"][x], 'ner_tags': selected_dataset_so_far[x].ner_tags} for x in selected_indices]
+    data  = Dataset.from_list(data).map(lambda x: tokenize_and_align_labels(tokenizer, x), batched=True, load_from_cache_file=False)
 
     print(f"Size of data: {len(data)}")
 
@@ -75,22 +99,37 @@ for active_learning_iteration in range(number_of_al_iterations):
 
     trainer.train()
 
-    unlabeled_dataset = []
-    for i in range(len(tokenized_conll2003['train'])):
-        if i not in selected_indices_set:
-            unlabeled_dataset.append(tokenized_conll2003['train'][i])
+    # unlabeled_dataset = []
+    # for i in range(len(tokenized_conll2003['train'])):
+        # if i not in selected_indices_set:
+            # unlabeled_dataset.append(tokenized_conll2003['train'][i])
 
-    predictions = trainer.predict(unlabeled_dataset)
+    predictions = trainer.predict(tokenized_conll2003['train'])
 
     # Filter the [PAD] scores, the [CLS] scores, etc.
     predictions_without_invalids = filter_invalid_token_predictions(predictions)
 
-    new_indices = query_strategy_function(predictions_without_invalids, k=number_of_new_examples)
-    selected_indices_set = selected_indices_set.union(new_indices)
-    selected_indices += new_indices
+    selected_dataset_so_far = dict(
+        query_strategy_function(predictions_without_invalids, k=number_of_new_examples, id_to_label=id_to_label, dataset_so_far=list(selected_dataset_so_far.items()), dataset=tokenized_conll2003['train'])
+    )
+    selected_indices_set = set(selected_dataset_so_far.keys())
+    # We do sorting to avoid any unpredictability that might have been added by the order in the dict 
+    # (i.e. set([1,2,3]) is not necessarily guaranteed to have the same order in between successive runs if PYTHONHASHSEED is not set)
+    # We let the dataloader do the shuffling during training and we ensure the same order of the dataset initially
+    selected_indices = sorted(list(selected_dataset_so_far.keys()))
 
     predictions_val = trainer.predict(tokenized_conll2003["validation"])
     verbose_performance_printing(predictions_val, active_learning_iteration)
-    all_results.append({'active_learning_iteration': active_learning_iteration, **predictions_val.metrics, 'data_distribution': [(id_to_label[x[0]], x[1]) for x in Counter([y for x in conll2003['train'].select(selected_indices)['ner_tags'] for y in x]).items()], 'query_strategy_function': args['query_strategy_function'], 'number_of_new_examples': args['number_of_new_examples'], 'number_of_al_iterations': args['number_of_al_iterations'],})
+    all_results.append(
+        {
+            'active_learning_iteration': active_learning_iteration, 
+            **predictions_val.metrics, 
+            'data_distribution': [(id_to_label[x[0]], x[1]) for x in Counter([y for x in conll2003['train'].select(selected_indices)['ner_tags'] for y in x]).items()], 
+            'query_strategy_function': args['query_strategy_function'], 
+            'number_of_new_examples': args['number_of_new_examples'],
+            'number_of_al_iterations': args['number_of_al_iterations'],
+            'number_of_annotated_tokens': sum([x[1].number_of_annotated_tokens() for x in list(selected_dataset_so_far.items())]),
+        }
+    )
 
 print(json.dumps(all_results))
