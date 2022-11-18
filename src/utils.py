@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import Any, Dict, List
 import evaluate
 import numpy as np
 import torch
@@ -127,3 +127,11 @@ class ALAnnotation:
     sentence_id: int
     ner_tags: List[str]
     
+    @staticmethod
+    def from_line(line: Dict[str, Any], sid=None, new_ner_tags=None):
+        if sid is None:
+            sid = line['id']
+        if new_ner_tags is None:
+            new_ner_tags = line['ner_tags']
+
+        return ALAnnotation(sid, new_ner_tags)
