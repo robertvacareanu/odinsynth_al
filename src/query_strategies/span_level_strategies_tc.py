@@ -23,13 +23,20 @@ The rules employed here are as follows:
     - return `O` for `born`
 - Assuming `New` was selected for annotation
     - return 'B-LOC I-LOC I-LOC' for 'New York City'
+
+
+All functions implemented here are expecting, additionally:
+    - dataset        -> A huggingface like dataset. Should have `ner_tags`
+    - dataset_so_far -> A list of tuples; each tuple consists of (i) sentence id, and (ii) ALAnnotation
+    - id_to_label    -> A dictionary to map from integer to NER label (e.g. 0 -> `O`, 1 -> `B-PER`, etc)
+
 """
 from collections import defaultdict
 import random
 from scipy.stats import entropy
 from typing import Any, List
 
-from src.query_strategies.utils import annotate, take_full_entity
+from src.query_strategies.utils import annotate, filter_already_selected_sidtid_pairs, take_full_entity
 
 """
 Just ensure that the additional information we might be using
@@ -51,12 +58,20 @@ def sanity_check(predictions, other_label):
 In this query implementation we just select random
 """
 def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Any]:
-    token_and_sentence_ids = []
+    sentence_and_token_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
-            token_and_sentence_ids.append((sid, tid))
+            sentence_and_token_ids.append((sid, tid))
 
-    selected_data = random.sample(token_and_sentence_ids, k=k)
+    sentence_and_token_ids = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))
+
+    # We already selected everything
+    if len(sentence_and_token_ids) == 0:
+        return []
+
+    # These are the selections to be annotated
+    # A list of (sentence_id, token_position)
+    selected_data = random.sample(sentence_and_token_ids, k=k)
 
     dataset = kwargs.get('dataset')
     # Collapse every selection for every sentence
@@ -83,11 +98,17 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
             entropies_and_sentence_ids.append((sentence_id, token_pos, token_entropy))
     
     
-    entropies_and_sentence_ids_sorted = sorted(entropies_and_sentence_ids, key=lambda x: x[2], reverse=True)
+    sorted_data = sorted(entropies_and_sentence_ids, key=lambda x: x[2], reverse=True)
     
     # These are the selections to be annotated
     # A list of (sentence_id, token_position)
-    selected = [(x[0], x[1]) for x in entropies_and_sentence_ids_sorted[:k]]
+    sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
+    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))
+
+    # We already selected everything
+    if len(sentence_and_token_ids) == 0:
+        return []
+
 
     dataset = kwargs.get('dataset')
     # Collapse every selection for every sentence
@@ -113,12 +134,19 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     # Sort by margins
     sorted_data = sorted(token_and_sentence_ids, key=lambda x: x[2])
 
-    selected_data = [(x[0], x[1]) for x in sorted_data[:k]]
+    # These are the selections to be annotated
+    # A list of (sentence_id, token_position)
+    sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
+    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))
+
+    # We already selected everything
+    if len(sentence_and_token_ids) == 0:
+        return []
 
     dataset = kwargs.get('dataset')
     # Collapse every selection for every sentence
     sentenceid_to_tokensid = defaultdict(list)
-    for (sid, tid) in selected_data:
+    for (sid, tid) in selected:
         expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
         sentenceid_to_tokensid[sid] += expanded_tid
     
@@ -136,12 +164,15 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     # Sort by confidence in reverse
     sorted_data = sorted(token_and_sentence_ids, key=lambda x: x[2])
 
-    selected_data = [(x[0], x[1]) for x in sorted_data[:k]]
+    # These are the selections to be annotated
+    # A list of (sentence_id, token_position)
+    sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
+    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))
 
     dataset = kwargs.get('dataset')
     # Collapse every selection for every sentence
     sentenceid_to_tokensid = defaultdict(list)
-    for (sid, tid) in selected_data:
+    for (sid, tid) in selected:
         expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
         sentenceid_to_tokensid[sid] += expanded_tid
     
