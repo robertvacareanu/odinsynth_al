@@ -103,7 +103,7 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
     # These are the selections to be annotated
     # A list of (sentence_id, token_position)
     sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
-    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))
+    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k]
 
     # We already selected everything
     if len(sentence_and_token_ids) == 0:
@@ -137,7 +137,7 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     # These are the selections to be annotated
     # A list of (sentence_id, token_position)
     sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
-    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))
+    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k]
 
     # We already selected everything
     if len(sentence_and_token_ids) == 0:
@@ -167,7 +167,7 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     # These are the selections to be annotated
     # A list of (sentence_id, token_position)
     sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
-    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))
+    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k]
 
     dataset = kwargs.get('dataset')
     # Collapse every selection for every sentence
