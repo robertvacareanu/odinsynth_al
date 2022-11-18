@@ -152,13 +152,12 @@ def take_full_entity(labels: List[int], id_to_label: Dict[int, str], token_id) -
     # We take to the left and to the right
     elif token_id_label[0:2] == 'I-':
         # Take all 'I-' to the left
-        output_left = takewhile(lambda x: labels_str[x[0]][:2] == 'I-' and labels_str[x[0]][2:] == token_id_label[2:], reversed(list(enumerate(labels_str))[:token_id]))
+        output_left = takewhile(lambda x: labels_str[x[0]][:2] == 'I-' and labels_str[x[0]][2:] == token_id_label[2:], reversed(list(enumerate(labels_str))[:(token_id+1)]))
         output_left = list(reversed(list(output_left)))
         # We took all 'I-' to the left
         # This means that tbe very next token should be 'B-'. Otherwise, throw an error
         if labels_str[output_left[0][0]-1][0:2] != 'B-' and labels_str[output_left[0][0]-1][2:] != token_id_label[2:]:
             raise ValueError(f"Invalid sequence. We should have a `B-` with the same tag, but we do not. It is {labels_str}. Is everything ok?")
-        output = [output_left[0][0]-1] + output
         # Take all 'I-' to the right
         output_right = takewhile(lambda x: x[1][:2] == 'I-' and x[1][2:] == token_id_label[2:], list(enumerate(labels_str))[(token_id+1):])
         output_right = list(output_right)
