@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import List
 import evaluate
 import numpy as np
@@ -103,3 +104,26 @@ Aim to select at least `number_of_examples_per_entity` for each entity type
 """
 def select_representative_random_data(dataset, number_of_examples_per_entity) -> List[int]:
     pass
+
+
+"""
+Used for partially-annotated data points
+
+Wrap some of the annotations we keep around in a single class
+The intended utilization of this is as follows:
+We maintain a data structure of objects of this class
+At the end of each active learning iteration, when we query
+for new data points, we also give this data structure. 
+When we add new data points we check to see if those were
+already partially annotated. If they were, we append the annotations
+If not, we create a new object
+
+The reason to use this instead of simply the `ner_tags` is that
+maybe we will change the functionality in the future and use
+the part-of-speech tags to select the tokens to be annotated
+"""
+@dataclass
+class ALAnnotation:
+    sentence_id: int
+    ner_tags: List[str]
+    
