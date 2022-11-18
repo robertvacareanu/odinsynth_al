@@ -41,6 +41,10 @@ def filter_invalid_token_predictions(predictions):
             we need to know this because we might select different
             spans in the same sentence; So we don't want to throw
             away old annotations
+            (type: List[(int, List[int])]; a list of tuples, the first 
+            element is the sentence_id and the second element is 
+            the active learning annotations (i.e. the ner tags,
+            but maybe not all))
 :param selections -> what to annotate
             can be either a list of int, case in which we select full
             sentences;
@@ -51,7 +55,7 @@ def filter_invalid_token_predictions(predictions):
             (ii)  an entity, fully
             (iii) a part of the entity only
 """
-def annotate(dataset, selected_dataset_so_far: List[Tuple[int, Any]], selections: Union[List[int], List[Tuple[int, List[int]]]]) -> List:
+def annotate(dataset, selected_dataset_so_far: List[Tuple[int, List[int]]], selections: Union[List[int], List[Tuple[int, List[int]]]]) -> List[Tuple[int, List[int]]]:
     if len(selections) == 0:
         raise ValueError("Nothing selected. Is everything ok?")
 
@@ -66,21 +70,18 @@ def annotate(dataset, selected_dataset_so_far: List[Tuple[int, Any]], selections
     else:
         raise ValueError("Unknown parameter type. We expect `selections` to be either `List[int]` or `List[Tuple[int, int]]`. Is everything ok?")
 
-    selected_dataset = dataset.select(sentences_id)
+    selected_dataset = [dataset[sid] for sid in sentences_id]
     annotated_data = []
     # In this setting we select the full sentence
     # This is because we do not have any tokens_id
     if tokens_id is None:
         for sid, line in zip(sentences_id, selected_dataset):
-            line_dict_copy = {**line}
-            annotated_data.append((sid, line_dict_copy))
+            annotated_data.append((sid, line['ner_tags']))
     # In this setting we select individual tokens to annotate
     # This is because we have a token_id so we know which tokens
     # we wish to select
     else:
-        for sid, tid, line in zip(sentences_id, tokens_id, selected_dataset):
-            line_dict_copy = {**line}
-            
+        for sid, tid, line in zip(sentences_id, tokens_id, selected_dataset):            
             line_labels = line['ner_tags']
 
             # If this sentence was already selected before, we get the labels we have annotated so far
@@ -88,14 +89,14 @@ def annotate(dataset, selected_dataset_so_far: List[Tuple[int, Any]], selections
             # Otherwise, get a clean list of `-100`
             # Also, we get a copy of it
             if sid in selected_dataset_so_far_dict:
-                labels_so_far = [*selected_dataset_so_far_dict[sid]['al_labels']]
+                labels_so_far = [*selected_dataset_so_far_dict[sid]]
             else:
                 labels_so_far = [-100] * len(line_labels)
                 
             for token_to_annotate in tid:
                 labels_so_far[token_to_annotate] = line_labels[token_to_annotate]
 
-            annotated_data.append((sid, {**line_dict_copy, 'al_labels': labels_so_far}))
+            annotated_data.append((sid, labels_so_far))
         
     # Now we also have to add all the examples that were annotated before
     # We skip over the ones with the same sentence id as the ones added
