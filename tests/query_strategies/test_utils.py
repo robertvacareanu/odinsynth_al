@@ -1,6 +1,6 @@
 import unittest
 
-from src.query_strategies.utils import annotate, take_full_entity
+from src.query_strategies.utils import annotate, filter_already_selected_sidtid_pairs, take_full_entity
 from datasets import load_dataset
 
 from src.utils import ALAnnotation
@@ -156,6 +156,23 @@ class TestEntityLevelStrategiesTokenClassification(unittest.TestCase):
         self.assertEqual(len(output), 9)
         self.assertEqual(output, [26,27,28,29,30,31,32,33,34])
 
+
+    def test_filter_already_selected_sidtid_pairs(self):
+        conll2003 = load_dataset("conll2003")['train']
+
+        # The dataset we have selected so far
+        # A list of (sentence_id, line_dictionary)
+        selected_dataset_so_far = []
+
+        # This one is partially annotated (missing annotation for 0)
+        labels0 = [-100, 0, 7, 0, 0, 0, 7, 0, 0]
+        self.assertNotEquals(labels0, conll2003[0]['ner_tags'])
+        selected_dataset_so_far.append((0, ALAnnotation.from_line({}, 0, labels0)))
+        selected_dataset_so_far.append((1, ALAnnotation.from_line(conll2003[1], 1)))
+
+        filtered = filter_already_selected_sidtid_pairs(tid_sid=[(0,0), (0,1), (1,0), (1,1)], dataset_so_far=selected_dataset_so_far)
+        self.assertEqual(len(filtered), 1)
+        self.assertEqual(filtered[0], (0,0))
 
 
 if __name__ == '__main__':
