@@ -49,7 +49,7 @@ all_results = []
 
 for active_learning_iteration in range(number_of_al_iterations):
     model = AutoModelForTokenClassification.from_pretrained(args['underlying_model'], num_labels=len(label_to_id))
-    data = tokenized_conll2003["train"].select(selected_indices)
+    data  = tokenized_conll2003["train"].select(selected_indices)
 
     print(f"Size of data: {len(data)}")
 
@@ -84,15 +84,6 @@ for active_learning_iteration in range(number_of_al_iterations):
 
     # Filter the [PAD] scores, the [CLS] scores, etc.
     predictions_without_invalids = filter_invalid_token_predictions(predictions)
-    # for (sentence, labels) in zip(predictions.predictions, predictions.label_ids):
-    #     current_sentence = []
-    #     for (token_scores, label) in zip(sentence, labels):
-    #         if label == -100:
-    #             continue
-    #         else:
-    #             current_sentence.append(scipy.special.softmax(token_scores, axis=0).tolist())
-
-        # predictions_without_invalids.append(current_sentence)
 
     new_indices = query_strategy_function(predictions_without_invalids, k=number_of_new_examples)
     selected_indices_set = selected_indices_set.union(new_indices)
