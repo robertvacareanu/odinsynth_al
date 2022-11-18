@@ -135,3 +135,9 @@ class ALAnnotation:
             new_ner_tags = line['ner_tags']
 
         return ALAnnotation(sid, new_ner_tags)
+
+    """
+    Return the number of ner_tags annotated
+    """
+    def number_of_annotated_tokens(self) -> int:
+        return len([x for x in self.ner_tags if x != -100])
