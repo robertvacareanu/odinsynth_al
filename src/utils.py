@@ -76,6 +76,10 @@ def init_random(seed):
     np.random.seed(seed)
     random.seed(seed)
 
+"""
+Some performance printing
+Mostly to check the trends
+"""
 def verbose_performance_printing(predictions, ali):
     print("############")
     print(f"AL Iteration: {ali}")
