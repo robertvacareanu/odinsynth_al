@@ -2,6 +2,8 @@ from typing import Any, Dict, List, Tuple, Union
 from itertools import takewhile
 import scipy
 
+from src.utils import ALAnnotation
+
 
 """
 In general, we pad every sentence in the batch up to the same length
@@ -55,7 +57,7 @@ def filter_invalid_token_predictions(predictions):
             (ii)  an entity, fully
             (iii) a part of the entity only
 """
-def annotate(dataset, selected_dataset_so_far: List[Tuple[int, List[int]]], selections: Union[List[int], List[Tuple[int, List[int]]]]) -> List[Tuple[int, List[int]]]:
+def annotate(dataset, selected_dataset_so_far: List[Tuple[int, ALAnnotation]], selections: Union[List[int], List[Tuple[int, List[int]]]]) -> List[Tuple[int, ALAnnotation]]:
     if len(selections) == 0:
         raise ValueError("Nothing selected. Is everything ok?")
 
@@ -76,7 +78,7 @@ def annotate(dataset, selected_dataset_so_far: List[Tuple[int, List[int]]], sele
     # This is because we do not have any tokens_id
     if tokens_id is None:
         for sid, line in zip(sentences_id, selected_dataset):
-            annotated_data.append((sid, line['ner_tags']))
+            annotated_data.append((sid, ALAnnotation.from_line(line, sid)))
     # In this setting we select individual tokens to annotate
     # This is because we have a token_id so we know which tokens
     # we wish to select
@@ -89,14 +91,14 @@ def annotate(dataset, selected_dataset_so_far: List[Tuple[int, List[int]]], sele
             # Otherwise, get a clean list of `-100`
             # Also, we get a copy of it
             if sid in selected_dataset_so_far_dict:
-                labels_so_far = [*selected_dataset_so_far_dict[sid]]
+                labels_so_far = [*selected_dataset_so_far_dict[sid].ner_tags]
             else:
                 labels_so_far = [-100] * len(line_labels)
                 
             for token_to_annotate in tid:
                 labels_so_far[token_to_annotate] = line_labels[token_to_annotate]
 
-            annotated_data.append((sid, labels_so_far))
+            annotated_data.append((sid, ALAnnotation.from_line(line, sid, labels_so_far)))
         
     # Now we also have to add all the examples that were annotated before
     # We skip over the ones with the same sentence id as the ones added
@@ -106,10 +108,10 @@ def annotate(dataset, selected_dataset_so_far: List[Tuple[int, List[int]]], sele
     # maintain its order
     sentences_id_set = set(sentences_id)
     original_data = []
-    for (original_sid, line) in selected_dataset_so_far:
+    for (original_sid, al_annot) in selected_dataset_so_far:
         # If this annotated sentence is not already added, add it
         if original_sid not in sentences_id_set:
-            original_data.append((original_sid, line))
+            original_data.append((original_sid, al_annot))
 
 
     return original_data + annotated_data
