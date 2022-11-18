@@ -27,7 +27,7 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tu
     dataset = kwargs.get('dataset')
     output  = []
     for si in selected_indices:
-        output.append((si, ALAnnotation(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
+        output.append((si, ALAnnotation.from_line(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
     return output
 
 
@@ -45,7 +45,7 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
     dataset = kwargs.get('dataset')
     output  = []
     for si in selected_indices:
-        output.append((si, ALAnnotation(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
+        output.append((si, ALAnnotation.from_line(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
     return output
 
 
@@ -67,7 +67,7 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     dataset = kwargs.get('dataset')
     output  = []
     for si in selected_indices:
-        output.append((si, ALAnnotation(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
+        output.append((si, ALAnnotation.from_line(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
         
     return output
 
@@ -84,7 +84,7 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     dataset = kwargs.get('dataset')
     output  = []
     for si in selected_indices:
-        output.append((si, ALAnnotation(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
+        output.append((si, ALAnnotation.from_line(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
     return output
 
 
