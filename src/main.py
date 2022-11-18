@@ -1,5 +1,6 @@
 import json
 from src.arg_parser import get_argparser
+from src.dataset_utils import get_conll2003
 from src.query_strategies.utils import filter_invalid_token_predictions
 from src.utils import compute_metrics, init_random, tokenize_and_align_labels, verbose_performance_printing
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
@@ -23,20 +24,17 @@ query_strategy = {
 }
 query_strategy_function = query_strategy[args['query_strategy_function']]
 
-conll2003 = load_dataset("conll2003")
-label_to_id = {'O': 0, 'B-PER': 1, 'I-PER': 2, 'B-ORG': 3, 'I-ORG': 4, 'B-LOC': 5, 'I-LOC': 6, 'B-MISC': 7, 'I-MISC': 8}
-id_to_label = {v:k for (k,v) in label_to_id.items()}
+conll2003, label_to_id, id_to_label = get_conll2003()
 
 starting_size = int(len(conll2003['train']) * args['starting_size_ratio'])
 
 selected_indices = random.sample(range(0, len(conll2003['train'])), starting_size)
 selected_indices_set = set(selected_indices)
-# print(len(conll2003['train']))
-# print(len(conll2003['train'].select(selected_indices)))
-# exit()
+selected_dataset_so_far = [conll2003['train'][x]['ner_tags'] for x in selected_indices]
 
 tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
 
+# Tokenize everything
 tokenized_conll2003 = conll2003.map(lambda x: tokenize_and_align_labels(tokenizer, x), batched=True)
 data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer, return_tensors="pt")
 metric = evaluate.load("seqeval")
