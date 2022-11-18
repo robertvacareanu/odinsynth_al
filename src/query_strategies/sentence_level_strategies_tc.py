@@ -14,33 +14,45 @@ but at the end we return sentences
 """
 import random
 from scipy.stats import entropy
-from typing import List
+from typing import List, Tuple
 
 
 """
 In this query implementation we just select random
 """
-def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
-    return random.sample(list(range(len(predictions))), k=k)
+def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, List[int]]]:
+    selected_indices = random.sample(list(range(len(predictions))), k=k)
+    dataset = kwargs.get('dataset')
+    output  = []
+    for si in selected_indices:
+        output.append((si, dataset[si]['ner_tags']))
+    return output
+
 
 
 """
 In this query implementation we select the top `k` by entropy
 Higher entropy means more uncertainty
 """
-def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
+def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, List[int]]]:
     aggregation_function = kwargs.get('aggregation_function', max)
     entropies = [aggregation_function([entropy(y) for y in x]) for x in predictions]
 
     entropies_and_indices = list(zip(range(len(entropies)), entropies))
-    return [x[0] for x in sorted(entropies_and_indices, key=lambda x: x[1], reverse=True)[:k]]
+    selected_indices = [x[0] for x in sorted(entropies_and_indices, key=lambda x: x[1], reverse=True)[:k]]
+    dataset = kwargs.get('dataset')
+    output  = []
+    for si in selected_indices:
+        output.append((si, dataset[si]['ner_tags']))
+    return output
+
 
 
 """
 In this query implementation we select the top `k` by difference
 between top two predictions
 """
-def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
+def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, List[int]]]:
     aggregation_function = kwargs.get('aggregation_function', min)
     margins = [[sorted(y, reverse=True)[:2] for y in x] for x in predictions]
     margins = [aggregation_function([y[0] - y[1] for y in x]) for x in margins]
@@ -49,17 +61,29 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
 
     sorted_margins_and_indices = sorted(margins_and_indices, key=lambda x: x[1])
 
-    return [x[0] for x in sorted_margins_and_indices[:k]]
+    selected_indices = [x[0] for x in sorted_margins_and_indices[:k]]
+    dataset = kwargs.get('dataset')
+    output  = []
+    for si in selected_indices:
+        output.append((si, dataset[si]['ner_tags']))
+    return output
 
 
-def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
+
+def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, List[int]]]:
     aggregation_function = kwargs.get('aggregation_function', min)
     prediction_confidence = [aggregation_function([sorted(y, reverse=True)[-1] for y in x]) for x in predictions]
 
     prediction_confidence_and_indices = list(zip(range(len(prediction_confidence)), prediction_confidence))
     sorted_prediction_confidence_and_indices = sorted(prediction_confidence_and_indices, key=lambda x: x[1])
 
-    return [x[0] for x in sorted_prediction_confidence_and_indices[:k]]
+    selected_indices = [x[0] for x in sorted_prediction_confidence_and_indices[:k]]
+    dataset = kwargs.get('dataset')
+    output  = []
+    for si in selected_indices:
+        output.append((si, dataset[si]['ner_tags']))
+    return output
+
 
 
 """
