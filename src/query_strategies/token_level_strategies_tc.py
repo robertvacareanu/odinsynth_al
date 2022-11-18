@@ -53,7 +53,7 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
     # Sort by entropy in reverse
     sorted_data = sorted(token_and_sentence_ids, key=lambda x: x[2], reverse=True)
 
-    selected_data = [(x[1], x[2]) for x in sorted_data[:k]]
+    selected_data = [(x[0], x[1]) for x in sorted_data[:k]]
 
     return selected_data
 
@@ -72,7 +72,7 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     # Sort by margins
     sorted_data = sorted(token_and_sentence_ids, key=lambda x: x[2])
 
-    selected_data = [(x[1], x[2]) for x in sorted_data[:k]]
+    selected_data = [(x[0], x[1]) for x in sorted_data[:k]]
 
     return selected_data
 
