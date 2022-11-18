@@ -32,7 +32,7 @@ selected_indices = random.sample(range(0, len(conll2003['train'])), starting_siz
 selected_indices_set = set(selected_indices)
 selected_dataset_so_far = [conll2003['train'][x]['ner_tags'] for x in selected_indices]
 
-tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
+tokenizer = AutoTokenizer.from_pretrained(args['underlying_model'])
 
 # Tokenize everything
 tokenized_conll2003 = conll2003.map(lambda x: tokenize_and_align_labels(tokenizer, x), batched=True)
