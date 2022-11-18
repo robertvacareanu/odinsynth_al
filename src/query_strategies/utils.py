@@ -34,11 +34,8 @@ def filter_invalid_token_predictions(predictions):
 
 """
 :param dataset -> something that looks like a Huggingface dataset
-            each line dictionary should have, additionally,
-            a field called `al_labels` which stands for 
-            `active learning labels`. This is the field which 
-            contains the tokens that were annotated (either initially
-            or by querying the user)
+            Should have at least `ner_tags` field accessable similar
+            to a dictioanry
 :param selected_dataset_so_far -> what we annotated so far;
             we need to know this because we might select different
             spans in the same sentence; So we don't want to throw
