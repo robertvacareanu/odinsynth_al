@@ -144,3 +144,7 @@ class ALAnnotation:
 
     def tokenid_selected_so_far(self) -> List[int]:
         return [x[0] for x in enumerate(self.ner_tags) if x[1] != -100]
+
+    def get_annotated_tokens(self) -> List[int]:
+        return [x for x in self.ner_tags if x != -100]
+        
