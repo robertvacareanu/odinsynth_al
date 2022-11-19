@@ -109,7 +109,8 @@ for active_learning_iteration in range(number_of_al_iterations):
     data  = [{**conll2003["train"][x], 'ner_tags': selected_dataset_so_far[x].ner_tags} for x in selected_indices]
     data  = Dataset.from_list(data).map(lambda x: tokenize_and_align_labels(tokenizer, x), batched=True, load_from_cache_file=False)
 
-    print(f"Size of data: {len(data)}")
+    print(f"Total number of sentences partially or fully annotated: {len(data)}")
+    print(f"Total number of annotated tokens: {sum([x.number_of_annotated_tokens() for x in selected_dataset_so_far.values()])}")
 
     training_args = TrainingArguments(
         output_dir="./outputs",
