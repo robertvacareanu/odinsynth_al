@@ -39,6 +39,9 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tu
 """
 In this query implementation we select the top `k` by entropy
 Higher entropy means more uncertainty
+We use an aggregation function to transform a list of numbers (score for each token
+in the sentence) into a single number representative for the full sentence
+The default function here is: `max`
 """
 def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, List[int]]]:
     aggregation_function = kwargs.get('aggregation_function', max)
@@ -63,6 +66,9 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
 """
 In this query implementation we select the top `k` by difference
 between top two predictions
+We use an aggregation function to transform a list of numbers (score for each token
+in the sentence) into a single number representative for the full sentence
+The default function here is: `min`
 """
 def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, List[int]]]:
     aggregation_function = kwargs.get('aggregation_function', min)
@@ -85,7 +91,13 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
 
 
-
+"""
+In this query implementation we select the top `k` by smallest score (i.e.
+a smaller score means the model is not sure)
+We use an aggregation function to transform a list of numbers (score for each token
+in the sentence) into a single number representative for the full sentence
+The default function here is: `min`
+"""
 def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, List[int]]]:
     aggregation_function = kwargs.get('aggregation_function', min)
     prediction_confidence = [aggregation_function([sorted(y, reverse=True)[-1] for y in x]) for x in predictions]
