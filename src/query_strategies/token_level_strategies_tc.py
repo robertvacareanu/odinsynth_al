@@ -38,20 +38,21 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[in
     sentence_and_token_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
-            sentence_and_token_ids.append((sid, [tid]))
+            sentence_and_token_ids.append((sid, tid))
 
     sentence_and_token_ids = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))
+    selected = [(x[0], [x[1]]) for x in sentence_and_token_ids]
 
     # We already selected everything
-    if len(sentence_and_token_ids) == 0:
+    if len(selected) == 0:
         return []
 
     # These are the selections to be annotated
     # A list of (sentence_id, token_position)
-    selected_data = random.sample(sentence_and_token_ids, k=k)
+    selected = random.sample(selected, k=k)
     dataset = kwargs.get('dataset')
 
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected_data)
+    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
 
 
 """
@@ -75,6 +76,7 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
     # A list of (sentence_id, token_position)
     sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
     selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k]
+    selected = [(x[0], [x[1]]) for x in selected]
 
     # We already selected everything
     if len(sentence_and_token_ids) == 0:
@@ -103,6 +105,7 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     # A list of (sentence_id, token_position)
     sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
     selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k]
+    selected = [(x[0], [x[1]]) for x in selected]
     # print(selected)
 
     # We already selected everything
@@ -119,7 +122,7 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
             scores = sorted(token, reverse=True)
-            token_and_sentence_ids.append((sid, [tid], scores[0]))
+            token_and_sentence_ids.append((sid, tid, scores[0]))
 
     # Sort by confidence in reverse
     sorted_data = sorted(token_and_sentence_ids, key=lambda x: x[2])
@@ -128,6 +131,7 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     # A list of (sentence_id, token_position)
     sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
     selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k]
+    selected = [(x[0], [x[1]]) for x in selected]
 
     dataset = kwargs.get('dataset')
     
