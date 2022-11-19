@@ -156,13 +156,15 @@ for active_learning_iteration in range(number_of_al_iterations):
     verbose_performance_printing(predictions_val, active_learning_iteration)
     all_results.append(
         {
-            'active_learning_iteration': active_learning_iteration, 
+            'active_learning_iteration': active_learning_iteration,
             **predictions_val.metrics, 
-            'data_distribution': [(id_to_label[x[0]], x[1]) for x in Counter([y for x in conll2003['train'].select(selected_indices)['ner_tags'] for y in x]).items()], 
-            'query_strategy_function': args['query_strategy_function'], 
-            'number_of_new_examples': args['number_of_new_examples'],
-            'number_of_al_iterations': args['number_of_al_iterations'],
+            # 'all_data_distribution'     : [(id_to_label[x[0]], x[1]) for x in Counter([y for x in conll2003['train'].select(selected_indices)['ner_tags'] for y in x]).items()],
+            'annotation_strategy'       : args['annotation_strategy'],
+            'query_strategy_function'   : args['query_strategy_function'],
+            'number_of_new_examples'    : args['number_of_new_examples'],
+            'number_of_al_iterations'   : args['number_of_al_iterations'],
             'number_of_annotated_tokens': sum([x[1].number_of_annotated_tokens() for x in list(selected_dataset_so_far.items())]),
+            'selected_data_distribution': sorted(Counter([id_to_label[x] for x in [z for y in selected_dataset_so_far.values() for z in y.get_annotated_tokens()]]).items(), key=lambda x: x[0]),
         }
     )
 
