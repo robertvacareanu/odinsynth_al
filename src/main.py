@@ -164,7 +164,7 @@ for active_learning_iteration in range(number_of_al_iterations):
             'number_of_new_examples'    : args['number_of_new_examples'],
             'number_of_al_iterations'   : args['number_of_al_iterations'],
             'number_of_annotated_tokens': sum([x[1].number_of_annotated_tokens() for x in list(selected_dataset_so_far.items())]),
-            'selected_data_distribution': sorted(Counter([id_to_label[x] for x in [z for y in selected_dataset_so_far.values() for z in y.get_annotated_tokens()]]).items(), key=lambda x: x[0]),
+            'selected_data_distribution': sorted(Counter([id_to_label[x] for x in [z for y in selected_dataset_so_far.values() for z in y.get_annotated_tokens()]]).items(), key=lambda x: (x[0], x[0]) if x[0] == 'O' else (x[0][:2], x[0][2:])),
         }
     )
 
