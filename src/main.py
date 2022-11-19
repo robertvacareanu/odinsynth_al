@@ -120,6 +120,7 @@ for active_learning_iteration in range(number_of_al_iterations):
         per_device_eval_batch_size=16,
         num_train_epochs=epochs[active_learning_iteration],
         weight_decay=0.01,
+        save_strategy="no",
     )
 
     trainer = Trainer(
