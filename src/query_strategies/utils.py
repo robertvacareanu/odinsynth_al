@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Tuple, Union
+from collections import defaultdict
+from typing import Dict, List, Tuple, Union
 from itertools import takewhile
 import scipy
 
@@ -55,6 +56,7 @@ def filter_invalid_token_predictions(predictions):
             (iii) a part of the entity only
 """
 def annotate(dataset, selected_dataset_so_far: List[Tuple[int, ALAnnotation]], selections: Union[List[int], List[Tuple[int, List[int]]]]) -> List[Tuple[int, ALAnnotation]]:
+    print(f"Annotate a number of {len(selections)}")
     if len(selections) == 0:
         raise ValueError("Nothing selected. Is everything ok?")
 
@@ -93,6 +95,8 @@ def annotate(dataset, selected_dataset_so_far: List[Tuple[int, ALAnnotation]], s
                 labels_so_far = [-100] * len(line_labels)
                 
             for token_to_annotate in tid:
+                if labels_so_far[token_to_annotate] == line_labels[token_to_annotate]:
+                    raise ValueError("Annotating a token that was already annnotated. Is everything ok?")
                 labels_so_far[token_to_annotate] = line_labels[token_to_annotate]
 
             annotated_data.append((sid, ALAnnotation.from_line(line, sid, labels_so_far)))
@@ -184,3 +188,10 @@ def filter_already_selected_sidtid_pairs(sid_tid: List[Tuple[int, int]], dataset
 
     return [x for x in sid_tid if x not in sentence_id_token_id_selected_so_far]
 
+
+def collapse_same_sentenceid_tokens(sid_tid: List[Tuple[int, int]]) -> List[Tuple[int, List[int]]]:
+    result = defaultdict(list)
+    for (sid, tid) in sid_tid:
+        result[sid].append(tid)
+
+    return list(result.items())

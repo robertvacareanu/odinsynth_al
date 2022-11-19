@@ -28,7 +28,7 @@ import random
 from scipy.stats import entropy
 from typing import List
 
-from src.query_strategies.utils import annotate, filter_already_selected_sidtid_pairs
+from src.query_strategies.utils import annotate, collapse_same_sentenceid_tokens, filter_already_selected_sidtid_pairs
 
 
 """
@@ -41,7 +41,7 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[in
             sentence_and_token_ids.append((sid, tid))
 
     sentence_and_token_ids = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))
-    selected = [(x[0], [x[1]]) for x in sentence_and_token_ids]
+    selected = [(x[0], x[1]) for x in sentence_and_token_ids]
 
     # We already selected everything
     if len(selected) == 0:
@@ -49,7 +49,8 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[in
 
     # These are the selections to be annotated
     # A list of (sentence_id, token_position)
-    selected = random.sample(selected, k=min(k, len(selected)))
+    selected = collapse_same_sentenceid_tokens(random.sample(selected, k=min(k, len(selected))))
+
     dataset = kwargs.get('dataset')
 
     return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
@@ -75,8 +76,7 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
     # These are the selections to be annotated
     # A list of (sentence_id, token_position)
     sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
-    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k]
-    selected = [(x[0], [x[1]]) for x in selected]
+    selected = collapse_same_sentenceid_tokens(filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k])
 
     # We already selected everything
     if len(sentence_and_token_ids) == 0:
@@ -104,8 +104,7 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     # These are the selections to be annotated
     # A list of (sentence_id, token_position)
     sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
-    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k]
-    selected = [(x[0], [x[1]]) for x in selected]
+    selected = collapse_same_sentenceid_tokens(filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k])
     # print(selected)
 
     # We already selected everything
@@ -130,8 +129,7 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     # These are the selections to be annotated
     # A list of (sentence_id, token_position)
     sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
-    selected = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k]
-    selected = [(x[0], [x[1]]) for x in selected]
+    selected = collapse_same_sentenceid_tokens(filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))[:k])
 
     dataset = kwargs.get('dataset')
     
