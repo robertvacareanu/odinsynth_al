@@ -168,4 +168,10 @@ for active_learning_iteration in range(number_of_al_iterations):
         }
     )
 
-print(json.dumps(all_results))
+if args['append_logs_to_file']:
+    with open(args['append_logs_to_file'], 'a+') as fout:
+        _=fout.write(json.dumps(all_results))
+        _=fout.write('\n')
+else:
+    print(json.dumps(all_results))
+
