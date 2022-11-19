@@ -6,28 +6,27 @@ from src.utils import ALAnnotation, compute_metrics, init_random, tokenize_and_a
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
 from transformers import DataCollatorForTokenClassification
 from transformers import AutoTokenizer
-from datasets import load_dataset, Dataset
+from datasets import Dataset
 import evaluate
 import random
-import scipy
 from collections import Counter
 from src.query_strategies.sentence_level_strategies_tc import (
-    random_query as sl_random_query, 
+    random_query             as sl_random_query, 
     prediction_entropy_query as sl_prediction_entropy_query, 
-    breaking_ties_query as sl_breaking_ties_query, 
-    least_confidence_query as sl_least_confidence_query
+    breaking_ties_query      as sl_breaking_ties_query, 
+    least_confidence_query   as sl_least_confidence_query
     )
 from src.query_strategies.span_level_strategies_tc import (
-    random_query as el_random_query, 
+    random_query             as el_random_query, 
     prediction_entropy_query as el_prediction_entropy_query, 
-    breaking_ties_query as el_breaking_ties_query, 
-    least_confidence_query as el_least_confidence_query
+    breaking_ties_query      as el_breaking_ties_query, 
+    least_confidence_query   as el_least_confidence_query
     )
 from src.query_strategies.token_level_strategies_tc import (
-    random_query as tl_random_query, 
+    random_query             as tl_random_query, 
     prediction_entropy_query as tl_prediction_entropy_query, 
-    breaking_ties_query as tl_breaking_ties_query, 
-    least_confidence_query as tl_least_confidence_query
+    breaking_ties_query      as tl_breaking_ties_query, 
+    least_confidence_query   as tl_least_confidence_query
     )
 # from src.query_strategies.span_level_strategies_tc import random_query, prediction_entropy_query, breaking_ties_query, least_confidence_query
 
