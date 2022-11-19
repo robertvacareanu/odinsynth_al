@@ -49,7 +49,7 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[in
 
     # These are the selections to be annotated
     # A list of (sentence_id, token_position)
-    selected = random.sample(selected, k=k)
+    selected = random.sample(selected, k=min(k, len(selected)))
     dataset = kwargs.get('dataset')
 
     return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
