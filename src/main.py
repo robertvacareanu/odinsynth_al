@@ -28,7 +28,6 @@ from src.query_strategies.token_level_strategies_tc import (
     breaking_ties_query      as tl_breaking_ties_query, 
     least_confidence_query   as tl_least_confidence_query
     )
-# from src.query_strategies.span_level_strategies_tc import random_query, prediction_entropy_query, breaking_ties_query, least_confidence_query
 
 """
 TODO Make every query strategy return the following thing:
@@ -108,8 +107,11 @@ for active_learning_iteration in range(number_of_al_iterations):
     data  = [{**conll2003["train"][x], 'ner_tags': selected_dataset_so_far[x].ner_tags} for x in selected_indices]
     data  = Dataset.from_list(data).map(lambda x: tokenize_and_align_labels(tokenizer, x), batched=True, load_from_cache_file=False)
 
+    # Use `Z` for 'O' to artificialy push it to the end of the sorted list
+    selected_data_distribution = sorted(Counter([id_to_label[x] for x in [z for y in selected_dataset_so_far.values() for z in y.get_annotated_tokens()]]).items(), key=lambda x: ('Z', 'Z') if x[0] == 'O' else (x[0][2:], x[0][:2]))
     print(f"Total number of sentences partially or fully annotated: {len(data)}")
     print(f"Total number of annotated tokens: {sum([x.number_of_annotated_tokens() for x in selected_dataset_so_far.values()])}")
+    print(f"Total number of each token type: {selected_data_distribution}")
 
     training_args = TrainingArguments(
         output_dir="./outputs",
@@ -165,7 +167,7 @@ for active_learning_iteration in range(number_of_al_iterations):
             'number_of_new_examples'    : args['number_of_new_examples'],
             'number_of_al_iterations'   : args['number_of_al_iterations'],
             'number_of_annotated_tokens': sum([x[1].number_of_annotated_tokens() for x in list(selected_dataset_so_far.items())]),
-            'selected_data_distribution': sorted(Counter([id_to_label[x] for x in [z for y in selected_dataset_so_far.values() for z in y.get_annotated_tokens()]]).items(), key=lambda x: (x[0], x[0]) if x[0] == 'O' else (x[0][:2], x[0][2:])),
+            'selected_data_distribution': selected_data_distribution,
         }
     )
 
