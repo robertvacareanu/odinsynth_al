@@ -175,12 +175,12 @@ To avoid this, we filter based on what we have already selected
 Selecting something that was already selected again is not a good idea. No reason to ask to annotate it
 again if it was already annotated (Might be annotation errors, but we don't consider them as of right now)
 """
-def filter_already_selected_sidtid_pairs(tid_sid: List[Tuple[int, int]], dataset_so_far: List[Tuple[int, ALAnnotation]]) -> List[Tuple[int, int]]:
+def filter_already_selected_sidtid_pairs(sid_tid: List[Tuple[int, int]], dataset_so_far: List[Tuple[int, ALAnnotation]]) -> List[Tuple[int, int]]:
     sentence_id_token_id_selected_so_far = []
     for (sid, annotated_line) in dataset_so_far:
         sentence_id_token_id_selected_so_far += [(sid, x) for x in annotated_line.tokenid_selected_so_far()]
 
     sentence_id_token_id_selected_so_far = set(sentence_id_token_id_selected_so_far)
 
-    return [x for x in tid_sid if x not in sentence_id_token_id_selected_so_far]
+    return [x for x in sid_tid if x not in sentence_id_token_id_selected_so_far]
 
