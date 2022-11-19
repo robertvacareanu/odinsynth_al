@@ -83,7 +83,7 @@ starting_size = int(len(conll2003['train']) * args['starting_size_ratio'])
 selected_indices = random.sample(range(0, len(conll2003['train'])), starting_size)
 selected_indices_set = set(selected_indices)
 # This list holds what we have selected so far
-selected_dataset_so_far = dict([(x, ALAnnotation(x, conll2003['train'][x]['ner_tags'])) for x in selected_indices])
+selected_dataset_so_far = dict([(x, ALAnnotation.from_line(line=conll2003['train'][x], sid=x)) for x in selected_indices])
 
 tokenizer = AutoTokenizer.from_pretrained(args['underlying_model'])
 
