@@ -15,6 +15,7 @@ but at the end we return sentences
 import random
 from scipy.stats import entropy
 from typing import List, Tuple
+from src.query_strategies.utils import annotate
 
 from src.utils import ALAnnotation
 
@@ -23,13 +24,16 @@ from src.utils import ALAnnotation
 In this query implementation we just select random
 """
 def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, List[int]]]:
-    selected_indices = random.sample(list(range(len(predictions))), k=k)
+    dataset_so_far = dict(kwargs.get('dataset_so_far'))
+
+    selected_indices = random.sample([x for x in list(range(len(predictions))) if x not in dataset_so_far], k=k)    
+    
     dataset = kwargs.get('dataset')
     output  = []
     for si in selected_indices:
-        output.append((si, ALAnnotation.from_line(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
-    return output
+        output.append(si)
 
+    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
 
 
 """
@@ -41,12 +45,18 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
     entropies = [aggregation_function([entropy(y) for y in x]) for x in predictions]
 
     entropies_and_indices = list(zip(range(len(entropies)), entropies))
-    selected_indices = [x[0] for x in sorted(entropies_and_indices, key=lambda x: x[1], reverse=True)[:k]]
+
+    dataset_so_far = dict(kwargs.get('dataset_so_far'))
+
+
+    selected_indices = [x[0] for x in sorted(entropies_and_indices, key=lambda x: x[1], reverse=True) if x[0] not in dataset_so_far][:k]
+
     dataset = kwargs.get('dataset')
     output  = []
     for si in selected_indices:
-        output.append((si, ALAnnotation.from_line(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
-    return output
+        output.append(si)
+
+    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
 
 
 
@@ -63,13 +73,16 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
 
     sorted_margins_and_indices = sorted(margins_and_indices, key=lambda x: x[1])
 
-    selected_indices = [x[0] for x in sorted_margins_and_indices[:k]]
+    dataset_so_far = dict(kwargs.get('dataset_so_far'))
+
+    selected_indices = [x[0] for x in sorted_margins_and_indices if x[0] not in dataset_so_far][:k]
+
     dataset = kwargs.get('dataset')
     output  = []
     for si in selected_indices:
-        output.append((si, ALAnnotation.from_line(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
+        output.append(si)
         
-    return output
+    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
 
 
 
@@ -80,12 +93,15 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     prediction_confidence_and_indices = list(zip(range(len(prediction_confidence)), prediction_confidence))
     sorted_prediction_confidence_and_indices = sorted(prediction_confidence_and_indices, key=lambda x: x[1])
 
-    selected_indices = [x[0] for x in sorted_prediction_confidence_and_indices[:k]]
+    dataset_so_far = dict(kwargs.get('dataset_so_far'))
+
+    selected_indices = [x[0] for x in sorted_prediction_confidence_and_indices if x[0] not in dataset_so_far][:k]
     dataset = kwargs.get('dataset')
     output  = []
     for si in selected_indices:
-        output.append((si, ALAnnotation.from_line(line=None, sid=si, new_ner_tags=dataset[si]['ner_tags'])))
-    return output
+        output.append(si)
+
+    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
 
 
 
