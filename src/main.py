@@ -46,8 +46,8 @@ Then, we iterate over each dict overwriting `labels` using our active_learning_l
 This is done to ignore backpropagation on tokens we don't have annotations for
 """
 
-init_random(1)
 args = vars(get_argparser().parse_args())
+init_random(args['seed'])
 
 
 annotation_strategy_to_query_strategy_fn = {
