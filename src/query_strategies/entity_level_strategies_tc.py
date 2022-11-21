@@ -178,7 +178,7 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
             scores = sorted(token, reverse=True)
-            token_and_sentence_ids.append((sid, [tid], scores[0]))
+            token_and_sentence_ids.append((sid, tid, scores[0]))
 
     # Sort by confidence in reverse
     sorted_data = sorted(token_and_sentence_ids, key=lambda x: x[2])
