@@ -16,7 +16,7 @@ from src.query_strategies.sentence_level_strategies_tc import (
     breaking_ties_query      as sl_breaking_ties_query, 
     least_confidence_query   as sl_least_confidence_query
     )
-from src.query_strategies.span_level_strategies_tc import (
+from src.query_strategies.entity_level_strategies_tc import (
     random_query             as el_random_query, 
     prediction_entropy_query as el_prediction_entropy_query, 
     breaking_ties_query      as el_breaking_ties_query, 
