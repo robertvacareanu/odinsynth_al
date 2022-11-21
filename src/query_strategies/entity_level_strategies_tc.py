@@ -98,6 +98,9 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
             entropies_and_sentence_ids.append((sentence_id, token_pos, token_entropy))
     
     
+    # Sort the data by entropy, descending
+    # We want to select those with higher entropy (i.e. the probability is split more or less
+    # equal on every possibility)
     sorted_data = sorted(entropies_and_sentence_ids, key=lambda x: x[2], reverse=True)
     
     # These are the selections to be annotated
