@@ -80,6 +80,11 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[An
         expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
         sentenceid_to_tokensid[sid] += expanded_tid
     
+    # Ensure uniqueness
+    for (sid, _) in selected_data:
+        sentenceid_to_tokensid[sid] = sorted(list(set(sentenceid_to_tokensid[sid])))
+
+
     return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
 
 
@@ -120,6 +125,11 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
         expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
         sentenceid_to_tokensid[sid] += expanded_tid
     
+    # Ensure uniqueness
+    for (sid, _) in selected:
+        sentenceid_to_tokensid[sid] = sorted(list(set(sentenceid_to_tokensid[sid])))
+
+
     return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
 
 
@@ -153,6 +163,11 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     for (sid, tid) in selected:
         expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
         sentenceid_to_tokensid[sid] += expanded_tid
+
+    # Ensure uniqueness
+    for (sid, _) in selected:
+        sentenceid_to_tokensid[sid] = sorted(list(set(sentenceid_to_tokensid[sid])))
+
     
     return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
 
@@ -179,6 +194,10 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     for (sid, tid) in selected:
         expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
         sentenceid_to_tokensid[sid] += expanded_tid
+    
+    # Ensure uniqueness
+    for (sid, _) in selected:
+        sentenceid_to_tokensid[sid] = sorted(list(set(sentenceid_to_tokensid[sid])))
     
     return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
 
