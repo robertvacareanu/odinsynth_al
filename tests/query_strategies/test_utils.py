@@ -156,7 +156,6 @@ class TestEntityLevelStrategiesTokenClassification(unittest.TestCase):
         self.assertEqual(len(output), 9)
         self.assertEqual(output, [26,27,28,29,30,31,32,33,34])
 
-
     def test_filter_already_selected_sidtid_pairs(self):
         conll2003 = load_dataset("conll2003")['train']
 
