@@ -73,6 +73,7 @@ annotation_strategy_to_query_strategy_fn = {
 
 
 query_strategy_function = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']][args['query_strategy_function']]
+query_random = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']]['random_query']
 
 conll2003, label_to_id, id_to_label = get_conll2003()
 
@@ -92,14 +93,23 @@ data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer, return_t
 metric = evaluate.load("seqeval")
 
 
-number_of_new_examples  = args['number_of_new_examples']
 number_of_al_iterations = args['number_of_al_iterations']
-epochs                  = [args['epochs']] * number_of_al_iterations
-learning_rates          = [args['learning_rate']] * number_of_al_iterations
+if len(args['epochs']) < number_of_al_iterations:
+    number_of_new_examples_list  = args['number_of_new_examples'] + ([args['number_of_new_examples'][-1]] * (number_of_al_iterations - len(args['number_of_new_examples'])))
+else:
+    number_of_new_examples_list  = args['number_of_new_examples'][:number_of_al_iterations]
+if len(args['epochs']) < number_of_al_iterations:
+    epochs_list                  = args['epochs'] + ([args['epochs'][-1]] * (number_of_al_iterations - len(args['epochs'])))
+else:
+    epochs_list                  = args['epochs'][:number_of_al_iterations]
+if len(args['learning_rate']) < number_of_al_iterations:
+    learning_rates_list          = args['learning_rate'] + ([args['learning_rate'][-1]] * (number_of_al_iterations - len(args['learning_rate'])))
+else:
+    learning_rates_list          = args['learning_rate'][:number_of_al_iterations]
 
 all_results = []
 
-for active_learning_iteration in range(number_of_al_iterations):
+for active_learning_iteration, number_of_new_examples, epochs, learning_rate in zip(range(number_of_al_iterations), number_of_new_examples_list, epochs_list, learning_rates_list):
     model = AutoModelForTokenClassification.from_pretrained(args['underlying_model'], num_labels=len(label_to_id))
 
     # Create the new dataset using all the selected indices
@@ -116,10 +126,10 @@ for active_learning_iteration in range(number_of_al_iterations):
     training_args = TrainingArguments(
         output_dir="./outputs",
         # evaluation_strategy="epoch",
-        learning_rate=learning_rates[active_learning_iteration],
+        learning_rate=learning_rate,
         per_device_train_batch_size=8,
         per_device_eval_batch_size=16,
-        num_train_epochs=epochs[active_learning_iteration],
+        num_train_epochs=epochs,
         weight_decay=0.01,
         save_strategy="no",
     )
@@ -149,6 +159,12 @@ for active_learning_iteration in range(number_of_al_iterations):
     selected_dataset_so_far = dict(
         query_strategy_function(predictions_without_invalids, k=number_of_new_examples, id_to_label=id_to_label, dataset_so_far=list(selected_dataset_so_far.items()), dataset=tokenized_conll2003['train'])
     )
+    # selected_dataset_so_far = dict(
+        # query_strategy_function(predictions_without_invalids, k=int(3*number_of_new_examples/4), id_to_label=id_to_label, dataset_so_far=list(selected_dataset_so_far.items()), dataset=tokenized_conll2003['train'])
+    # )
+    # selected_dataset_so_far = dict(
+        # query_random(predictions_without_invalids, k=int(1*number_of_new_examples/4), id_to_label=id_to_label, dataset_so_far=list(selected_dataset_so_far.items()), dataset=tokenized_conll2003['train'])
+    # )
     selected_indices_set = set(selected_dataset_so_far.keys())
     # We do sorting to avoid any unpredictability that might have been added by the order in the dict 
     # (i.e. set([1,2,3]) is not necessarily guaranteed to have the same order in between successive runs if PYTHONHASHSEED is not set)
@@ -156,7 +172,9 @@ for active_learning_iteration in range(number_of_al_iterations):
     selected_indices = sorted(list(selected_dataset_so_far.keys()))
 
     predictions_val = trainer.predict(tokenized_conll2003["validation"])
-    verbose_performance_printing(predictions_val, active_learning_iteration)
+    if args['verbose']:
+        verbose_performance_printing(predictions_val, active_learning_iteration)
+        
     all_results.append(
         {
             'active_learning_iteration': active_learning_iteration,
@@ -164,10 +182,15 @@ for active_learning_iteration in range(number_of_al_iterations):
             # 'all_data_distribution'     : [(id_to_label[x[0]], x[1]) for x in Counter([y for x in conll2003['train'].select(selected_indices)['ner_tags'] for y in x]).items()],
             'annotation_strategy'       : args['annotation_strategy'],
             'query_strategy_function'   : args['query_strategy_function'],
-            'number_of_new_examples'    : args['number_of_new_examples'],
             'number_of_al_iterations'   : args['number_of_al_iterations'],
             'number_of_annotated_tokens': sum([x[1].number_of_annotated_tokens() for x in list(selected_dataset_so_far.items())]),
             'selected_data_distribution': selected_data_distribution,
+            'seed'                      : args['seed'],
+            'starting_size_ratio'       : args['starting_size_ratio'],
+            'underlying_model'          : args['underlying_model'],
+            'epochs'                    : epochs,
+            'number_of_new_examples'    : number_of_new_examples,
+            'learning_rate'             : learning_rate,
         }
     )
 
