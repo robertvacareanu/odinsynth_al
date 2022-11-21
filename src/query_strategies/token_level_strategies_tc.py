@@ -123,7 +123,8 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
             scores = sorted(token, reverse=True)
             token_and_sentence_ids.append((sid, tid, scores[0]))
 
-    # Sort by confidence in reverse
+    # Sort by confidence ascending
+    # We are interested in taking the ones with the lowest confidence
     sorted_data = sorted(token_and_sentence_ids, key=lambda x: x[2])
 
     # These are the selections to be annotated
