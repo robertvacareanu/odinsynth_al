@@ -132,6 +132,7 @@ Realistically, the situation would be something like:
 :param labels     : the gold labels
 :param id_to_label: a dictionary from a label id to str (i.e. 1 -> B-PER) 
 :param token_id   : the token we chose to annotate
+:returns a list containing all the tokens in that particular entity (or [token_id] only if it is `O`)
 """
 def take_full_entity(labels: List[int], id_to_label: Dict[int, str], token_id) -> List[int]:
     labels_str = [id_to_label[x] for x in labels]
