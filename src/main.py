@@ -119,6 +119,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
 
     # Use `Z` for 'O' to artificialy push it to the end of the sorted list
     selected_data_distribution = sorted(Counter([id_to_label[x] for x in [z for y in selected_dataset_so_far.values() for z in y.get_annotated_tokens()]]).items(), key=lambda x: ('Z', 'Z') if x[0] == 'O' else (x[0][2:], x[0][:2]))
+    number_of_annotated_tokens = sum([x[1].number_of_annotated_tokens() for x in list(selected_dataset_so_far.items())])
     print(f"Total number of sentences partially or fully annotated: {len(data)}")
     print(f"Total number of annotated tokens: {sum([x.number_of_annotated_tokens() for x in selected_dataset_so_far.values()])}")
     print(f"Total number of each token type: {selected_data_distribution}")
@@ -183,7 +184,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
             'annotation_strategy'       : args['annotation_strategy'],
             'query_strategy_function'   : args['query_strategy_function'],
             'number_of_al_iterations'   : args['number_of_al_iterations'],
-            'number_of_annotated_tokens': sum([x[1].number_of_annotated_tokens() for x in list(selected_dataset_so_far.items())]),
+            'number_of_annotated_tokens': number_of_annotated_tokens,
             'selected_data_distribution': selected_data_distribution,
             'seed'                      : args['seed'],
             'starting_size_ratio'       : args['starting_size_ratio'],
