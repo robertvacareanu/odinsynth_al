@@ -34,7 +34,7 @@ from src.query_strategies.utils import annotate, collapse_same_sentenceid_tokens
 """
 In this query implementation we just select random
 """
-def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
+def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
     sentence_and_token_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
@@ -60,7 +60,7 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[in
 In this query implementation we select the top `k` by entropy
 Higher entropy means more uncertainty
 """
-def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
+def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
     # Calculate the entropy of each token prediction
     entropies = [[entropy(y) for y in x] for x in predictions]
 
@@ -91,7 +91,7 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
 In this query implementation we select the top `k` by difference
 between top two predictions
 """
-def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
+def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
     token_and_sentence_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
@@ -116,7 +116,7 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
 
 
-def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[int]:
+def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
     token_and_sentence_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):

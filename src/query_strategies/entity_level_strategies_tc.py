@@ -34,9 +34,10 @@ All functions implemented here are expecting, additionally:
 from collections import defaultdict
 import random
 from scipy.stats import entropy
-from typing import Any, List
+from typing import Any, List, Tuple
 
 from src.query_strategies.utils import annotate, filter_already_selected_sidtid_pairs, take_full_entity
+from src.utils import ALAnnotation
 
 """
 Just ensure that the additional information we might be using
@@ -57,7 +58,7 @@ def sanity_check(predictions, other_label):
 """
 In this query implementation we just select random
 """
-def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Any]:
+def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
     sentence_and_token_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
@@ -92,7 +93,7 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[An
 In this query implementation we select the top `k` by entropy
 Higher entropy means more uncertainty
 """
-def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Any]:
+def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
     # Calculate the entropy of each token prediction
     entropies = [[entropy(y) for y in x] for x in predictions]
 
@@ -137,7 +138,7 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
 In this query implementation we select the top `k` by difference
 between top two predictions
 """
-def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Any]:
+def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
     token_and_sentence_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
@@ -173,7 +174,7 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
 
 
 
-def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Any]:
+def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
     token_and_sentence_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
