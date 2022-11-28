@@ -16,6 +16,7 @@ def base_parser(parent_parser):
     subparser.add_argument('--dataset_name', type=str, default='conll2003', choices=['conll2003', 'ontonotes'])
     subparser.add_argument('--train_batch_size', type=int, default=8)
     subparser.add_argument('--eval_batch_size', type=int, default=16)
+    subparser.add_argument('--use_full_dataset', action='store_true', help='If set, we will use the full dataset and would not perform any active learning')
     return parent_parser
 
 
