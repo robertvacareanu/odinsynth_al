@@ -1,6 +1,6 @@
 import json
 from src.arg_parser import get_argparser
-from src.dataset_utils import get_conll2003
+from src.dataset_utils import get_conll2003, get_ontonotes
 from src.query_strategies.utils import filter_invalid_token_predictions
 from src.utils import ALAnnotation, compute_metrics, init_random, tokenize_and_align_labels, verbose_performance_printing
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
@@ -69,6 +69,11 @@ annotation_strategy_to_query_strategy_fn = {
         'breaking_ties_query'     : tl_breaking_ties_query,
         'least_confidence_query'  : tl_least_confidence_query,    
     },
+}
+
+dataset_name_to_fn = {
+    'conll2003': get_conll2003,
+    'ontonotes': get_ontonotes,
 }
 
 
