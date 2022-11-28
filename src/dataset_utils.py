@@ -2,7 +2,7 @@
 Some utils to work with the datasets in the AL scenario
 """
 
-from datasets import load_dataset
+from datasets import load_dataset, DatasetDict, Dataset
 import random
 
 """
@@ -28,6 +28,61 @@ def get_conll2003():
     label_to_id = {'O': 0, 'B-PER': 1, 'I-PER': 2, 'B-ORG': 3, 'I-ORG': 4, 'B-LOC': 5, 'I-LOC': 6, 'B-MISC': 7, 'I-MISC': 8}
     id_to_label = {v:k for (k,v) in label_to_id.items()}
     return (conll2003, label_to_id, id_to_label)
+
+
+def get_ontonotes():
+    conll2012 = load_dataset('conll2012_ontonotesv5', 'english_v4')
+    data_train = []
+    data_val   = []
+    data_test  = []
+
+    i = 0
+    for line in conll2012['train']:
+        for s in line['sentences']:
+            o = {
+                'id'      : i,
+                'tokens'  : s['words'],
+                'ner_tags': s['named_entities'],
+            }
+            i += 1
+            data_train.append(o)
+
+    i = 0
+    for line in conll2012['validation']:
+        for s in line['sentences']:
+            o = {
+                'id'      : i,
+                'tokens'  : s['words'],
+                'ner_tags': s['named_entities'],
+            }
+            i += 1
+            data_val.append(o)
+            
+    i = 0
+    for line in conll2012['test']:
+        for s in line['sentences']:
+            o = {
+                'id'      : i,
+                'tokens'  : s['words'],
+                'ner_tags': s['named_entities'],
+            }
+            i += 1
+            data_test.append(o)
+
+
+    labels = ["O", "B-PERSON", "I-PERSON", "B-NORP", "I-NORP", "B-FAC", "I-FAC", "B-ORG", "I-ORG", "B-GPE", "I-GPE", "B-LOC", "I-LOC", "B-PRODUCT", "I-PRODUCT", "B-DATE", "I-DATE", "B-TIME", "I-TIME", "B-PERCENT", "I-PERCENT", "B-MONEY", "I-MONEY", "B-QUANTITY", "I-QUANTITY", "B-ORDINAL", "I-ORDINAL", "B-CARDINAL", "I-CARDINAL", "B-EVENT", "I-EVENT", "B-WORK_OF_ART", "I-WORK_OF_ART", "B-LAW", "I-LAW", "B-LANGUAGE", "I-LANGUAGE"]
+    id_to_label = {i:k for (i, k) in enumerate(labels)}
+    label_to_id = {v:k for (k, v) in id_to_label.items()}
+
+    dataset = DatasetDict({
+        'train'     : Dataset.from_list(data_train),
+        'validation': Dataset.from_list(data_val),
+        'test'      : Dataset.from_list(data_test),
+
+    })
+
+    return (dataset, label_to_id, id_to_label)
+
 
 
 """
