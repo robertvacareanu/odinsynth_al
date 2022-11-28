@@ -83,9 +83,11 @@ query_random = annotation_strategy_to_query_strategy_fn[args['annotation_strateg
 ner_dataset, label_to_id, id_to_label = dataset_name_to_fn[args['dataset_name']]()
 
 if args['use_full_dataset']:
-    starting_size = len(ner_dataset['train'])
+    starting_size_ratio = 1.0
+    starting_size       = len(ner_dataset['train'])
 else:
-    starting_size = int(len(ner_dataset['train']) * args['starting_size_ratio'])
+    starting_size_ratio = args['starting_size_ratio']
+    starting_size       = int(len(ner_dataset['train']) * starting_size_ratio)
 
 selected_indices = random.sample(range(0, len(ner_dataset['train'])), starting_size)
 selected_indices_set = set(selected_indices)
@@ -192,7 +194,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
             'number_of_annotated_tokens': number_of_annotated_tokens,
             'selected_data_distribution': selected_data_distribution,
             'seed'                      : args['seed'],
-            'starting_size_ratio'       : args['starting_size_ratio'],
+            'starting_size_ratio'       : starting_size_ratio,
             'underlying_model'          : args['underlying_model'],
             'epochs'                    : epochs,
             'number_of_new_examples'    : number_of_new_examples,
