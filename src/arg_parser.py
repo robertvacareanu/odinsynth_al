@@ -14,6 +14,8 @@ def base_parser(parent_parser):
     subparser.add_argument('--append_logs_to_file', type=str, default=None)
     subparser.add_argument('--verbose', action='store_true')
     subparser.add_argument('--dataset_name', type=str, default='conll2003', choices=['conll2003', 'ontonotes'])
+    subparser.add_argument('--train_batch_size', type=int, default=8)
+    subparser.add_argument('--eval_batch_size', type=int, default=16)
     return parent_parser
 
 
