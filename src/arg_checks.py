@@ -7,7 +7,7 @@ This file contains various argument checks to ensure (as much as possible) a smo
 """
 Side effects. If any check fails, raise a ValueError
 """
-def perform_checks(args):
+def do_arg_checks(args):
     if args['starting_size_ratio'] <= 0:
         raise ValueError("The starting size ratio must be greater than 0. We cannot train with no examples. Is everything ok?")
     if args['starting_size_ratio'] > 1.0:

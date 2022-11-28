@@ -47,6 +47,7 @@ This is done to ignore backpropagation on tokens we don't have annotations for
 """
 
 args = vars(get_argparser().parse_args())
+do_arg_checks(args)
 init_random(args['seed'])
 
 
