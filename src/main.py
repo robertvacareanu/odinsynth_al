@@ -80,7 +80,7 @@ dataset_name_to_fn = {
 query_strategy_function = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']][args['query_strategy_function']]
 query_random = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']]['random_query']
 
-ner_dataset, label_to_id, id_to_label = dataset_name_to_fn['dataset_name']()
+ner_dataset, label_to_id, id_to_label = dataset_name_to_fn[args['dataset_name']]()
 
 if args['use_full_dataset']:
     starting_size = len(ner_dataset['train'])
