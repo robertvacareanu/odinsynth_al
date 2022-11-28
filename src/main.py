@@ -30,7 +30,7 @@ from src.query_strategies.token_level_strategies_tc import (
     )
 
 """
-TODO Make every query strategy return the following thing:
+Every query strategy return the following thing:
     List[(Int, List[ALAnnotation])]
 So a tuple of integers and list
 The first element of the tuple is the sentence id (in the original dataset space)
