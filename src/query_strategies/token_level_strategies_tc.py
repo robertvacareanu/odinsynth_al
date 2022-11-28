@@ -26,9 +26,10 @@ The rules employed here are as follows:
 """
 import random
 from scipy.stats import entropy
-from typing import List
+from typing import List, Tuple
 
 from src.query_strategies.utils import annotate, collapse_same_sentenceid_tokens, filter_already_selected_sidtid_pairs
+from src.utils import ALAnnotation
 
 
 """
