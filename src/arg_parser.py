@@ -1,3 +1,20 @@
+"""
+This file contains the necessary code for command-line arguments
+Overall, we support things like:
+- learning rate
+- number of epochs
+
+Particular to AL, we support
+- number of active learning iterations
+- number of new examples per iteration
+- different learning rates and different epochs for each active learning iteration
+- various query strategies
+- various annotation strategies
+
+The same code can be used to train the model in a fully supervised way, by using the `use_full_dataset` flag
+
+"""
+
 import argparse
 
 def base_parser(parent_parser):
