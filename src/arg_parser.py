@@ -36,6 +36,7 @@ def base_parser(parent_parser):
     subparser.add_argument('--eval_batch_size', type=int, default=16)
     subparser.add_argument('--initial_dataset_selection_strategy_top_k', type=int, default=5)
     subparser.add_argument('--use_full_dataset', action='store_true', help='If set, we will use the full dataset and would not perform any active learning')
+    subparser.add_argument('--training_annotation_style', type=str, default='mask_unknown', choices=['mask_unknown', 'drop_unknown', 'dynamic_window'])
     return parent_parser
 
 
