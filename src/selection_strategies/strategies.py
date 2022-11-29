@@ -1,5 +1,7 @@
 """
-
+Different ways to select data from the initial dataset
+There can be different (and better) ways to select the initial
+dataset than simply randomly sampling
 """
 
 import random
