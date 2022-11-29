@@ -1,17 +1,24 @@
 import json
-from src.arg_checks import do_arg_checks
-from src.arg_parser import get_argparser
-from src.dataset_utils import get_conll2003, get_ontonotes
-from src.query_strategies.utils import filter_invalid_token_predictions
-from src.utils import ALAnnotation, compute_metrics, init_random, tokenize_and_align_labels, verbose_performance_printing
-from src.selection_strategies.strategies import longest_sentences_dataset_sampling, random_initial_dataset_sampling, tfidf_initial_dataset_sampling
+from collections import Counter
+
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
 from transformers import DataCollatorForTokenClassification
 from transformers import AutoTokenizer
 from datasets import Dataset
 import evaluate
-import random
-from collections import Counter
+
+from src.arg_checks import do_arg_checks
+from src.arg_parser import get_argparser
+from src.dataset_utils import get_conll2003, get_ontonotes
+from src.query_strategies.utils import filter_invalid_token_predictions
+from src.utils import ALAnnotation, compute_metrics, init_random, tokenize_and_align_labels, verbose_performance_printing
+from src.selection_strategies.strategies import (
+    longest_sentences_dataset_sampling, 
+    random_initial_dataset_sampling, 
+    tfidf_initial_dataset_sampling, 
+    tfidf_kmeans_initial_dataset_sampling
+    )
+
 from src.query_strategies.sentence_level_strategies_tc import (
     random_query             as sl_random_query, 
     prediction_entropy_query as sl_prediction_entropy_query, 
@@ -77,9 +84,10 @@ annotation_strategy_to_query_strategy_fn = {
 }
 
 initial_dataset_sampling_to_fn = {
-    'random_initial_dataset_sampling'   : random_initial_dataset_sampling,
-    'tfidf_initial_dataset_sampling'    : tfidf_initial_dataset_sampling,
-    'longest_sentences_dataset_sampling': longest_sentences_dataset_sampling,
+    'random_initial_dataset_sampling'      : random_initial_dataset_sampling,
+    'tfidf_initial_dataset_sampling'       : tfidf_initial_dataset_sampling,
+    'longest_sentences_dataset_sampling'   : longest_sentences_dataset_sampling,
+    'tfidf_kmeans_initial_dataset_sampling': tfidf_kmeans_initial_dataset_sampling,
 }
 
 dataset_name_to_fn = {
@@ -100,9 +108,10 @@ else:
     starting_size_ratio = args['starting_size_ratio']
     starting_size       = int(len(ner_dataset['train']) * starting_size_ratio)
 
-selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']]([' '.join(x) for x in ner_dataset['train']['tokens']], starting_size=starting_size, top_k_size=5)
+selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']]([' '.join(x) for x in ner_dataset['train']['tokens']], starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
 # selected_indices = random.sample(range(0, len(ner_dataset['train'])), starting_size)
 selected_indices_set = set(selected_indices)
+
 # This list holds what we have selected so far
 selected_dataset_so_far = dict([(x, ALAnnotation.from_line(line=ner_dataset['train'][x], sid=x)) for x in selected_indices])
 
@@ -144,6 +153,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
     number_of_annotated_tokens = sum([x[1].number_of_annotated_tokens() for x in list(selected_dataset_so_far.items())])
     print(f"Total number of sentences partially or fully annotated: {len(data)}")
     print(f"Total number of annotated tokens: {sum([x.number_of_annotated_tokens() for x in selected_dataset_so_far.values()])}")
+    print(f"Total number of non-O tokens: {sum([1 for x in selected_dataset_so_far.values() for y in x.get_annotated_tokens() if y != 0])}")
     print(f"Total number of each token type: {selected_data_distribution}")
 
     training_args = TrainingArguments(
