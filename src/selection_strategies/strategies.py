@@ -63,7 +63,8 @@ def tfidf_kmeans_initial_dataset_sampling(train_text, **kwargs):
         distances_original_idx = np.arange(distances.shape[0]).reshape(-1, 1)
         distances = np.delete(distances, indices)
         distances_original_idx = np.delete(distances_original_idx, indices)
-        argmax = distances_original_idx[distances.argmax()]
+
+        argmax = distances_original_idx[np.random.choice(np.flatnonzero(distances == distances.max()))]
 
         indices.append(argmax.item())
 
