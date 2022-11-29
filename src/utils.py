@@ -305,6 +305,7 @@ class ALAnnotation:
             # we hit a new thing that looks like a named entity (i.e. a match)
             else:
                 for i, m in enumerate(matches):
+                    match_indices = set(list(range(m.start(), m.end())))
                     leftmost_index  = None
                     rightmost_index = None
 
@@ -314,19 +315,23 @@ class ALAnnotation:
                         leftmost_index = 0
                     if i == len(matches) - 1:
                         rightmost_index = len(self.al_annotated_ner_tags)
-                    
+
                     # If a boundary is not set it means we were not at the first/last match
                     if leftmost_index is None:
-                        leftmost_index = matches[i-i].end()
+                        leftmost_index = matches[i-1].end()
                     if rightmost_index is None:
                         rightmost_index = matches[i+1].start()
 
                     ner_tags = [0] * (rightmost_index - leftmost_index)
                     tokens   = []
-                    for i in range(leftmost_index, rightmost_index):
-                        tokens.append(self.original_dict['tokens'][i])
-                        if self.al_annotated_ner_tags[i] != -100:
-                            ner_tags[i-leftmost_index] = self.al_annotated_ner_tags[i]
+                    for j in range(leftmost_index, rightmost_index):
+                        tokens.append(self.original_dict['tokens'][j])
+                        # If we are adding the token of the match, we respect the annotated
+                        # values, even if they are `-100` (i.e. they are missing)
+                        if j in match_indices:
+                            ner_tags[j-leftmost_index] = self.al_annotated_ner_tags[j]
+                        elif self.al_annotated_ner_tags[j] != -100:
+                            ner_tags[j-leftmost_index] = self.al_annotated_ner_tags[j]
 
                     output.append({
                         **self.original_dict,
