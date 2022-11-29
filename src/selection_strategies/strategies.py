@@ -51,7 +51,7 @@ def tfidf_initial_dataset_sampling(train_text, **kwargs):
 def tfidf_kmeans_initial_dataset_sampling(train_text, **kwargs):
 
     starting_size = kwargs['starting_size']
-    vectorizer = TfidfVectorizer(stop_words = 'english', ngram_range=(1,2), norm=None)
+    vectorizer = TfidfVectorizer(stop_words = 'english', ngram_range=(1,2), norm='l2')
 
     X     = vectorizer.fit_transform(train_text)
 
@@ -65,12 +65,8 @@ def tfidf_kmeans_initial_dataset_sampling(train_text, **kwargs):
         distances_original_idx = np.delete(distances_original_idx, indices)
         argmax = distances_original_idx[distances.argmax()]
 
-        indices.append(argmax)
+        indices.append(argmax.item())
 
-    print(indices)
-    print(len(indices))
-    print(len(set(indices)))
-    exit()
     return indices
 
 
