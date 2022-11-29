@@ -259,7 +259,10 @@ class ALAnnotation:
                         ner_tags.append(al_annotated_ner_tag)
                 else:
                     tokens.append(token)
-                    ner_tags.append(al_annotated_ner_tag)
+                    if al_annotated_ner_tag == -100:
+                        ner_tags.append(0)
+                    else:
+                        ner_tags.append(al_annotated_ner_tag)
 
             output.append({
                 **self.original_dict,
