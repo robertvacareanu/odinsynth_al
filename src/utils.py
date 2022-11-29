@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import re
 from typing import Any, Dict, List
 import evaluate
 import numpy as np
@@ -120,27 +121,224 @@ the part-of-speech tags to select the tokens to be annotated
 """
 @dataclass
 class ALAnnotation:
+    # The index of the original sentence
     sentence_id: int
-    ner_tags: List[str]
+
+    # This is the original data structure with all the labels
+    # We do not (necessarily) use everything in here
+    original_dict: Dict[str, Any]
+    
+    # Here we keep only the tags that were annotated by the user
+    al_annotated_ner_tags: List[str]
     
     @staticmethod
-    def from_line(line: Dict[str, Any], sid=None, new_ner_tags=None):
+    def from_line(line: Dict[str, Any], sid=None, al_annotated_ner_tags=None):
         if sid is None:
             sid = line['id']
-        if new_ner_tags is None:
-            new_ner_tags = line['ner_tags']
+        if al_annotated_ner_tags is None:
+            al_annotated_ner_tags = line['ner_tags']
 
-        return ALAnnotation(sid, new_ner_tags)
+        return ALAnnotation(sid, line, al_annotated_ner_tags)
 
     """
     Return the number of ner_tags annotated
     """
     def number_of_annotated_tokens(self) -> int:
-        return len([x for x in self.ner_tags if x != -100])
+        return len([x for x in self.al_annotated_ner_tags if x != -100])
 
     def tokenid_selected_so_far(self) -> List[int]:
-        return [x[0] for x in enumerate(self.ner_tags) if x[1] != -100]
+        return [x[0] for x in enumerate(self.al_annotated_ner_tags) if x[1] != -100]
 
     def get_annotated_tokens(self) -> List[int]:
-        return [x for x in self.ner_tags if x != -100]
+        return [x for x in self.al_annotated_ner_tags if x != -100]
+
+    """
+    Returns one or multiple training dictionaries, according to the annotation strategy
+    For example, `mask_unknown` will return the original data, but it will overwrite `ner_tags`
+    to keep only those that were annotated. Everything else will be `-100`.
+
+    annotation_strategy:
+        - `mask_all_unknown`             -> All unlabeled tokens receive a -100 ner tag
+        - `drop_all_unknown`             -> All unlabeled tokens are simply dropped
+        - `mask_entity_looking_unknowns` -> Everything that looks like an entity (i.e. `NNP+ (IN NNP+)?`) receives -100 ner tag
+        - `drop_entity_looking_unknowns` -> Everything that looks like an entity (i.e. `NNP+ (IN NNP+)?`) is dropped
+        - `dynamic_window`               -> 
+    
+    As an implementation strategy, we map every tag that is not NNP or IN to `O`. We map every `NNP` to `N` and ever `IN` to I
+    This is only done to make working with regex simple
+    The rule then becomes: `(N+(?:IN+)?)`
         
+    """
+    def get_training_annotations(self, annotation_strategy: str) -> List[Dict[str, Any]]:
+        # Everything that is unknown is masked
+        if annotation_strategy   == 'mask_all_unknown':
+            output_dict = {
+                **self.original_dict,
+                'ner_tags': self.al_annotated_ner_tags,
+            }
+            return [output_dict]
+        elif annotation_strategy == 'drop_all_unknown':
+            output_dict = {
+                'tokens': [],
+                'ner_tags': [],
+            }
+            for (token, nnt) in zip(self.original_dict['tokens'], self.al_annotated_ner_tags):
+                if nnt != 100:
+                    output_dict['tokens'].append(token)
+                    output_dict['ner_tags'].append(nnt)
+            
+            if len(output_dict['tokens']) == 0 or len(output_dict['ner_tags']) == 0:
+                raise ValueError("Something unannotated is in the annotated list. Is everything ok?")
+            return [output_dict]
+        elif annotation_strategy == 'mask_entity_looking_unknowns':
+            pos_tags = []
+            for tag in self.original_dict['pos_tags_text']:
+                if tag == 'NNP':
+                    pos_tags.append('N')
+                elif tag == 'IN':
+                    pos_tags.append('I')
+                else:
+                    pos_tags.append('O')
+
+            pos_tags = ''.join(pos_tags)
+            pos_tag_pattern = "(N+(?:IN+)?)"
+            matches = list(re.finditer(pos_tag_pattern, pos_tags))
+            
+            output = []
+            
+            # Everything is `O` in the beginning
+            ner_tags = [0] * len(self.al_annotated_ner_tags)
+            
+            # We iterate over each match
+            # Then, we overwrite the ner_tags when
+            # the annotated tag is different than -100
+            for m in matches:
+                for i in range(m.start, m.end):
+                    if self.al_annotated_ner_tags[i] != -100:
+                        ner_tags[i] = self.al_annotated_ner_tags[i]
+            
+            output.append({
+                **self.original_dict,
+                'ner_tags': ner_tags,
+            })
+
+            return output
+        elif annotation_strategy == 'drop_entity_looking_unknowns':
+            pos_tags = []
+            for tag in self.original_dict['pos_tags_text']:
+                if tag == 'NNP':
+                    pos_tags.append('N')
+                elif tag == 'IN':
+                    pos_tags.append('I')
+                else:
+                    pos_tags.append('O')
+
+            pos_tags = ''.join(pos_tags)
+            pos_tag_pattern = "(N+(?:IN+)?)"
+            matches = list(re.finditer(pos_tag_pattern, pos_tags))
+            
+            output = []
+            
+            # We iterate over each match
+            # Then, if a something that looks like a ner is
+            # present, we add it
+            # Otherwise, we drop it
+            tokens   = []
+            ner_tags = []
+            matches_indices = set()
+            for m in matches:
+                for i in range(m.start, m.end):
+                    matches_indices.add(i)
+            
+            # We iterate over ecah token
+            # If that token is inside the matches, we add it only if it is annotated (i.e. its label is not `-100`)
+            # Otherwise, we drop it
+            for (i, token, al_annotated_ner_tag) in zip(range(len(self.al_annotated_ner_tags), self.original_dict['tokens'], self.al_annotated_ner_tags)):
+                if i in matches_indices:
+                    if al_annotated_ner_tag != -100:
+                        tokens.append(token)
+                        ner_tags.append(al_annotated_ner_tag)
+                else:
+                    tokens.append(token)
+                    ner_tags.append(al_annotated_ner_tag)
+
+            output.append({
+                **self.original_dict,
+                'tokens'  : tokens,
+                'ner_tags': ner_tags,
+            })
+
+            return output
+        elif annotation_strategy == 'dynamic_window':
+            pos_tags = []
+            for tag in self.original_dict['pos_tags_text']:
+                if tag == 'NNP':
+                    pos_tags.append('N')
+                elif tag == 'IN':
+                    pos_tags.append('I')
+                else:
+                    pos_tags.append('O')
+
+            pos_tags = ''.join(pos_tags)
+            pos_tag_pattern = "(N+(?:IN+)?)"
+            matches = list(re.finditer(pos_tag_pattern, pos_tags))
+            
+            output = []
+            # If there is only one match, we return the full sentence, only with that entity masked
+            if len(matches) == 1:
+                m = matches[0]
+                ner_tags = []
+                
+                for i in range(m.start, m.end):
+                    if self.al_annotated_ner_tags[i] != -100:
+                        ner_tags[i] = self.al_annotated_ner_tags[i]            
+
+                output.append({
+                    **self.original_dict,
+                    'ner_tags': ner_tags,
+                })
+                
+            # If there are more matches, we will have as many sentences as matches
+            # For each match, we extend as far as possible to the left and to the right until
+            # we hit a new thing that looks like a named entity (i.e. a match)
+            else:
+                for i, m in enumerate(matches):
+                    leftmost_index  = None
+                    rightmost_index = None
+
+                    # When this is the first or the last match
+                    # we can easily set one boundary (i.e. either start or end)
+                    if i == 0:
+                        leftmost_index = 0
+                    if i == len(matches) - 1:
+                        rightmost_index = len(self.al_annotated_ner_tags)
+                    
+                    # If a boundary is not set it means we were not at the first/last match
+                    if leftmost_index is None:
+                        leftmost_index = matches[i-i].end
+                    if rightmost_index is None:
+                        rightmost_index = matches[i+1].start
+
+                    ner_tags = [0] * (rightmost_index - leftmost_index)
+                    tokens   = []
+                    for i in range(leftmost_index, rightmost_index):
+                        tokens.append(self.original_dict['tokens'][i])
+                        if self.al_annotated_ner_tags[i] != -100:
+                            ner_tags[i] = self.al_annotated_ner_tags[i]
+
+                    output.append({
+                        **self.original_dict,
+                        'tokens'  : tokens,
+                        'ner_tags': ner_tags,
+                    })
+                
+            return output
+        else:
+            raise ValueError("Unknown annotation strategy. Is everything ok?")
+
+@dataclass
+class PrimitiveALAnnotation:
+    sentence_id: int
+    tokens     : List[str]
+    ner_tags   : List[str]
+
