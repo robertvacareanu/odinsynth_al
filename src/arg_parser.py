@@ -28,6 +28,7 @@ def base_parser(parent_parser):
     subparser.add_argument('--learning_rate', type=float, nargs='+', default=[2e-5], help="Learning rate. We allow for multiple learning rates, one for each active learning iteration. If not enough, we duplicate the last one")
     subparser.add_argument('--query_strategy_function', type=str, default='random_query', choices=['random_query', 'prediction_entropy_query', 'breaking_ties_query', 'least_confidence_query'])
     subparser.add_argument('--annotation_strategy', type=str, default='sentence_level', choices=['sentence_level', 'entity_level', 'token_level'])
+    subparser.add_argument('--initial_dataset_selection_strategy', type=str, default='random_initial_dataset_sampling', choices=['random_initial_dataset_sampling', 'tfidf_initial_dataset_sampling', 'longest_sentences_dataset_sampling'])
     subparser.add_argument('--append_logs_to_file', type=str, default=None)
     subparser.add_argument('--verbose', action='store_true')
     subparser.add_argument('--dataset_name', type=str, default='conll2003', choices=['conll2003', 'ontonotes'])
