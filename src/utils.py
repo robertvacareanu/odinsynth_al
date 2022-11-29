@@ -210,6 +210,12 @@ class ALAnnotation:
             # Everything is `O` in the beginning
             ner_tags = [0] * len(self.al_annotated_ner_tags)
             
+            # We iterate over all annotations and overwrite
+            # if it is not -100
+            for i, nt in enumerate(self.al_annotated_ner_tags):
+                if nt != 100:
+                    ner_tags[i] = nt
+
             # We iterate over each match
             # Then, we overwrite the ner_tags
             for m in matches:
@@ -342,10 +348,3 @@ class ALAnnotation:
             return output
         else:
             raise ValueError("Unknown annotation strategy. Is everything ok?")
-
-@dataclass
-class PrimitiveALAnnotation:
-    sentence_id: int
-    tokens     : List[str]
-    ner_tags   : List[str]
-
