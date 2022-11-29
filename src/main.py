@@ -1,8 +1,10 @@
 import json
+from src.arg_checks import do_arg_checks
 from src.arg_parser import get_argparser
 from src.dataset_utils import get_conll2003, get_ontonotes
 from src.query_strategies.utils import filter_invalid_token_predictions
 from src.utils import ALAnnotation, compute_metrics, init_random, tokenize_and_align_labels, verbose_performance_printing
+from src.selection_strategies.strategies import longest_sentences_dataset_sampling, random_initial_dataset_sampling, tfidf_initial_dataset_sampling
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
 from transformers import DataCollatorForTokenClassification
 from transformers import AutoTokenizer
@@ -48,6 +50,8 @@ This is done to ignore backpropagation on tokens we don't have annotations for
 
 args = vars(get_argparser().parse_args())
 do_arg_checks(args)
+print(args)
+
 init_random(args['seed'])
 
 
@@ -72,6 +76,12 @@ annotation_strategy_to_query_strategy_fn = {
     },
 }
 
+initial_dataset_sampling_to_fn = {
+    'random_initial_dataset_sampling'   : random_initial_dataset_sampling,
+    'tfidf_initial_dataset_sampling'    : tfidf_initial_dataset_sampling,
+    'longest_sentences_dataset_sampling': longest_sentences_dataset_sampling,
+}
+
 dataset_name_to_fn = {
     'conll2003': get_conll2003,
     'ontonotes': get_ontonotes,
@@ -90,7 +100,8 @@ else:
     starting_size_ratio = args['starting_size_ratio']
     starting_size       = int(len(ner_dataset['train']) * starting_size_ratio)
 
-selected_indices = random.sample(range(0, len(ner_dataset['train'])), starting_size)
+selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']]([' '.join(x) for x in ner_dataset['train']['tokens']], starting_size=starting_size, top_k_size=5)
+# selected_indices = random.sample(range(0, len(ner_dataset['train'])), starting_size)
 selected_indices_set = set(selected_indices)
 # This list holds what we have selected so far
 selected_dataset_so_far = dict([(x, ALAnnotation.from_line(line=ner_dataset['train'][x], sid=x)) for x in selected_indices])
