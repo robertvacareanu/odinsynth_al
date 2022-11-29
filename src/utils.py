@@ -326,7 +326,7 @@ class ALAnnotation:
                     for i in range(leftmost_index, rightmost_index):
                         tokens.append(self.original_dict['tokens'][i])
                         if self.al_annotated_ner_tags[i] != -100:
-                            ner_tags[i] = self.al_annotated_ner_tags[i]
+                            ner_tags[i-leftmost_index] = self.al_annotated_ner_tags[i]
 
                     output.append({
                         **self.original_dict,
