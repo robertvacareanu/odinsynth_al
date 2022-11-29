@@ -58,14 +58,19 @@ def tfidf_kmeans_initial_dataset_sampling(train_text, **kwargs):
     mbkm = MiniBatchKMeans(n_clusters=starting_size, init_size=1024, batch_size=2048, random_state=1).fit(X)
 
     indices     = []
-    indices_set = set()
     for cluster in mbkm.cluster_centers_:
         distances = pairwise_distances(X, cluster.reshape(1, -1), metric='cosine')
+        distances_original_idx = np.arange(distances.shape[0]).reshape(-1, 1)
         distances = np.delete(distances, indices)
-        argmax = distances.argmax()
-        indices.append(argmax)
-        indices_set.add(argmax)
+        distances_original_idx = np.delete(distances_original_idx, indices)
+        argmax = distances_original_idx[distances.argmax()]
 
+        indices.append(argmax)
+
+    print(indices)
+    print(len(indices))
+    print(len(set(indices)))
+    exit()
     return indices
 
 
