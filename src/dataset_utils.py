@@ -20,6 +20,8 @@ def get_conll2003():
         'SYM': 34, 'TO': 35, 'UH': 36, 'VB': 37, 'VBD': 38, 'VBG': 39, 'VBN': 40, 'VBP': 41, 'VBZ': 42, 'WDT': 43,
         'WP': 44, 'WP$': 45, 'WRB': 46
     }
+    id_to_postag = {v:k for (k,v) in postag_to_id.items()}
+    
     chunk_to_id = {'O': 0, 'B-ADJP': 1, 'I-ADJP': 2, 'B-ADVP': 3, 'I-ADVP': 4, 'B-CONJP': 5, 'I-CONJP': 6, 'B-INTJ': 7, 'I-INTJ': 8,
         'B-LST': 9, 'I-LST': 10, 'B-NP': 11, 'I-NP': 12, 'B-PP': 13, 'I-PP': 14, 'B-PRT': 15, 'I-PRT': 16, 'B-SBAR': 17,
         'I-SBAR': 18, 'B-UCP': 19, 'I-UCP': 20, 'B-VP': 21, 'I-VP': 22
@@ -27,11 +29,70 @@ def get_conll2003():
     
     label_to_id = {'O': 0, 'B-PER': 1, 'I-PER': 2, 'B-ORG': 3, 'I-ORG': 4, 'B-LOC': 5, 'I-LOC': 6, 'B-MISC': 7, 'I-MISC': 8}
     id_to_label = {v:k for (k,v) in label_to_id.items()}
-    return (conll2003, label_to_id, id_to_label)
+
+
+    data_train = []
+    data_val   = []
+    data_test  = []
+
+    i = 0
+    for line in conll2003['train']:
+        for s in line['sentences']:
+            o = {
+                'id'           : i,
+                'tokens'       : s['tokens'],
+                'pos_tags'     : s['pos_tags'],
+                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
+                'ner_tags'     : s['ner_tags'],
+            }
+            i += 1
+            data_train.append(o)
+
+    i = 0
+    for line in conll2003['validation']:
+        for s in line['sentences']:
+            o = {
+                'id'           : i,
+                'tokens'       : s['tokens'],
+                'pos_tags'     : s['pos_tags'],
+                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
+                'ner_tags'     : s['ner_tags'],
+            }
+            i += 1
+            data_val.append(o)
+            
+    i = 0
+    for line in conll2003['test']:
+        for s in line['sentences']:
+            o = {
+                'id'           : i,
+                'tokens'       : s['tokens'],
+                'pos_tags'     : s['pos_tags'],
+                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
+                'ner_tags'     : s['ner_tags'],
+            }
+            i += 1
+            data_test.append(o)
+
+
+    dataset = DatasetDict({
+        'train'     : Dataset.from_list(data_train),
+        'validation': Dataset.from_list(data_val),
+        'test'      : Dataset.from_list(data_test),
+
+    })
+
+    return (dataset, label_to_id, id_to_label)
 
 
 def get_ontonotes():
     conll2012 = load_dataset('conll2012_ontonotesv5', 'english_v4')
+
+    postags = ["XX", "``", "$", "''", ",", "-LRB-", "-RRB-", ".", ":", "ADD", "AFX", "CC", "CD", "DT", "EX", "FW", "HYPH", "IN", "JJ", "JJR", "JJS", "LS", "MD", "NFP", "NN", "NNP", "NNPS", "NNS", "PDT", "POS", "PRP", "PRP$", "RB", "RBR", "RBS", "RP", "SYM", "TO", "UH", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ", "WDT", "WP", "WP$", "WRB",]
+    id_to_postag = {i:k for (i, k) in enumerate(postags)}
+    postag_to_id = {v:k for (k, v) in id_to_postag.items()}
+
+
     data_train = []
     data_val   = []
     data_test  = []
@@ -40,9 +101,11 @@ def get_ontonotes():
     for line in conll2012['train']:
         for s in line['sentences']:
             o = {
-                'id'      : i,
-                'tokens'  : s['words'],
-                'ner_tags': s['named_entities'],
+                'id'           : i,
+                'tokens'       : s['words'],
+                'pos_tags'     : s['pos_tags'],
+                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
+                'ner_tags'     : s['named_entities'],
             }
             i += 1
             data_train.append(o)
@@ -51,9 +114,11 @@ def get_ontonotes():
     for line in conll2012['validation']:
         for s in line['sentences']:
             o = {
-                'id'      : i,
-                'tokens'  : s['words'],
-                'ner_tags': s['named_entities'],
+                'id'           : i,
+                'tokens'       : s['words'],
+                'pos_tags'     : s['pos_tags'],
+                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
+                'ner_tags'     : s['named_entities'],
             }
             i += 1
             data_val.append(o)
@@ -62,12 +127,15 @@ def get_ontonotes():
     for line in conll2012['test']:
         for s in line['sentences']:
             o = {
-                'id'      : i,
-                'tokens'  : s['words'],
-                'ner_tags': s['named_entities'],
+                'id'           : i,
+                'tokens'       : s['words'],
+                'pos_tags'     : s['pos_tags'],
+                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
+                'ner_tags'     : s['named_entities'],
             }
             i += 1
             data_test.append(o)
+
 
 
     labels = ["O", "B-PERSON", "I-PERSON", "B-NORP", "I-NORP", "B-FAC", "I-FAC", "B-ORG", "I-ORG", "B-GPE", "I-GPE", "B-LOC", "I-LOC", "B-PRODUCT", "I-PRODUCT", "B-DATE", "I-DATE", "B-TIME", "I-TIME", "B-PERCENT", "I-PERCENT", "B-MONEY", "I-MONEY", "B-QUANTITY", "I-QUANTITY", "B-ORDINAL", "I-ORDINAL", "B-CARDINAL", "I-CARDINAL", "B-EVENT", "I-EVENT", "B-WORK_OF_ART", "I-WORK_OF_ART", "B-LAW", "I-LAW", "B-LANGUAGE", "I-LANGUAGE"]
