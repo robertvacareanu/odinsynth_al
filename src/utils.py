@@ -100,11 +100,6 @@ def verbose_performance_printing(predictions, ali):
     print("############")
     print("\n\n")
 
-"""
-Aim to select at least `number_of_examples_per_entity` for each entity type
-"""
-def select_representative_random_data(dataset, number_of_examples_per_entity) -> List[int]:
-    pass
 
 
 """
