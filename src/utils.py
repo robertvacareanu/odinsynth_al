@@ -200,7 +200,7 @@ class ALAnnotation:
                     pos_tags.append('I')
                 else:
                     pos_tags.append('O')
-            print(pos_tags)
+
             pos_tags = ''.join(pos_tags)
             pos_tag_pattern = "(N+(?:IN+)?)"
             matches = list(re.finditer(pos_tag_pattern, pos_tags))
