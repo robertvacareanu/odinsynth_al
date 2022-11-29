@@ -179,11 +179,12 @@ class ALAnnotation:
             return [output_dict]
         elif annotation_strategy == 'drop_all_unknown':
             output_dict = {
+                **self.original_dict,
                 'tokens': [],
                 'ner_tags': [],
             }
             for (token, nnt) in zip(self.original_dict['tokens'], self.al_annotated_ner_tags):
-                if nnt != 100:
+                if nnt != -100:
                     output_dict['tokens'].append(token)
                     output_dict['ner_tags'].append(nnt)
             
@@ -199,7 +200,7 @@ class ALAnnotation:
                     pos_tags.append('I')
                 else:
                     pos_tags.append('O')
-
+            print(pos_tags)
             pos_tags = ''.join(pos_tags)
             pos_tag_pattern = "(N+(?:IN+)?)"
             matches = list(re.finditer(pos_tag_pattern, pos_tags))
@@ -210,12 +211,10 @@ class ALAnnotation:
             ner_tags = [0] * len(self.al_annotated_ner_tags)
             
             # We iterate over each match
-            # Then, we overwrite the ner_tags when
-            # the annotated tag is different than -100
+            # Then, we overwrite the ner_tags
             for m in matches:
-                for i in range(m.start, m.end):
-                    if self.al_annotated_ner_tags[i] != -100:
-                        ner_tags[i] = self.al_annotated_ner_tags[i]
+                for i in range(m.start(), m.end()):
+                    ner_tags[i] = self.al_annotated_ner_tags[i]
             
             output.append({
                 **self.original_dict,
@@ -247,7 +246,7 @@ class ALAnnotation:
             ner_tags = []
             matches_indices = set()
             for m in matches:
-                for i in range(m.start, m.end):
+                for i in range(m.start(), m.end()):
                     matches_indices.add(i)
             
             # We iterate over ecah token
@@ -289,7 +288,7 @@ class ALAnnotation:
                 m = matches[0]
                 ner_tags = []
                 
-                for i in range(m.start, m.end):
+                for i in range(m.start(), m.end()):
                     if self.al_annotated_ner_tags[i] != -100:
                         ner_tags[i] = self.al_annotated_ner_tags[i]            
 
@@ -315,9 +314,9 @@ class ALAnnotation:
                     
                     # If a boundary is not set it means we were not at the first/last match
                     if leftmost_index is None:
-                        leftmost_index = matches[i-i].end
+                        leftmost_index = matches[i-i].end()
                     if rightmost_index is None:
-                        rightmost_index = matches[i+1].start
+                        rightmost_index = matches[i+1].start()
 
                     ner_tags = [0] * (rightmost_index - leftmost_index)
                     tokens   = []
