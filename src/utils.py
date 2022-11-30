@@ -295,12 +295,24 @@ class ALAnnotation:
             pos_tags = ''.join(pos_tags)
             pos_tag_pattern = "(N+(?:IN+)?)"
             matches = list(re.finditer(pos_tag_pattern, pos_tags))
-            
+
+            if len(matches) == 0:
+                return [{
+                    **self.original_dict,
+                    'ner_tags': self.al_annotated_ner_tags,
+                }]
+
             output = []
-            # If there is only one match, we return the full sentence, only with that entity masked
-            if len(matches) == 1:
+            # If there is only one match (or every entity candidate was annotated), we return the full sentence, only with that entity masked
+            if len(matches) == 1 or all([self.al_annotated_ner_tags[x] != -100 for x in [j for i in matches for j in range(i.start(), i.end())]]):
                 m = matches[0]
-                ner_tags = []
+                ner_tags = [0] * len(self.al_annotated_ner_tags)
+
+                # We iterate over all annotations and overwrite
+                # if it is not -100
+                for i, nt in enumerate(self.al_annotated_ner_tags):
+                    if nt != -100:
+                        ner_tags[i] = nt
                 
                 for i in range(m.start(), m.end()):
                     if self.al_annotated_ner_tags[i] != -100:
@@ -328,10 +340,30 @@ class ALAnnotation:
                         rightmost_index = len(self.al_annotated_ner_tags)
 
                     # If a boundary is not set it means we were not at the first/last match
+
+                    # Set leftmost boundary. Go step by step through each match. If a match is completely annotated,
+                    # we go to the next one (i.e. to the left)
                     if leftmost_index is None:
-                        leftmost_index = matches[i-1].end()
+                        j = i-1
+                        while j >= 0 and all([self.al_annotated_ner_tags[x] != -100 for x in range(matches[j].start(), matches[j].end())]):
+                            match_indices = match_indices.union(list(range(matches[j].start(), matches[j].end())))
+                            j = j-1
+                        if j < 0:
+                            leftmost_index = 0
+                        else:
+                            leftmost_index = matches[j].end()
+
+                    # Set rightmost boundary. Go step by step through each match. If a match is completely annotated,
+                    # we go to the next one (i.e. to the right)
                     if rightmost_index is None:
-                        rightmost_index = matches[i+1].start()
+                        j = i+1
+                        while j <= len(matches) - 1 and all([self.al_annotated_ner_tags[x] != -100 for x in range(matches[j].start(), matches[j].end())]):
+                            match_indices = match_indices.union(list(range(matches[j].start(), matches[j].end())))
+                            j = j+1
+                        if j > len(matches) - 1:
+                            rightmost_index = len(self.al_annotated_ner_tags)
+                        else:
+                            rightmost_index = matches[j].start()
 
                     ner_tags = [0] * (rightmost_index - leftmost_index)
                     tokens   = []

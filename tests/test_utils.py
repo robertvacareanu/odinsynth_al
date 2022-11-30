@@ -22,9 +22,9 @@ class TestEntityLevelStrategiesTokenClassification(unittest.TestCase):
         self.assertEqual(al_annotation.get_training_annotations("mask_entity_looking_unknowns")[0]['ner_tags'], [-100, 0, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         self.assertEqual(al_annotation.get_training_annotations("drop_entity_looking_unknowns")[0]['ner_tags'], [0, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         self.assertEqual(al_annotation.get_training_annotations("mask_entity_looking_unknowns")[0]['ner_tags'], [-100, 0, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        self.assertEqual(al_annotation.get_training_annotations("dynamic_window")[0]['ner_tags'], [-100, 0, 0])
-        self.assertEqual(al_annotation.get_training_annotations("dynamic_window")[1]['ner_tags'], [0, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        self.assertEqual(al_annotation.get_training_annotations("dynamic_window")[2]['ner_tags'], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(al_annotation.get_training_annotations("dynamic_window")[0]['ner_tags'], [-100, 0, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(al_annotation.get_training_annotations("dynamic_window")[1]['ner_tags'], [0, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(al_annotation.get_training_annotations("dynamic_window")[2]['ner_tags'], [0, 0, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 if __name__ == '__main__':
     unittest.main()
