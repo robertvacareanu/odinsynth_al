@@ -1,5 +1,10 @@
 """
 Some utils to work with the datasets in the AL scenario
+NOTE We sample a validation partition from train (1%). We
+     use a static seed for that; This is because we do not
+     want to introduce any more variance with the choice of 
+     seed; This would simmulate how real datasets are, though
+     as the `train`, `val`, and `test` partitions are static
 """
 
 from datasets import load_dataset, DatasetDict, Dataset
@@ -31,49 +36,32 @@ def get_conll2003():
     id_to_label = {v:k for (k,v) in label_to_id.items()}
 
 
-    data_train = []
-    data_val   = []
-    data_test  = []
+    data_train     = []
+    data_val_train = []
+    data_val       = []
+    data_test      = []
 
-    i = 0
-    for line in conll2003['train']:
-        o = {
-            'id'           : i,
-            'tokens'       : line['tokens'],
-            'pos_tags'     : line['pos_tags'],
-            'pos_tags_text': [id_to_postag[x] for x in line['pos_tags']],
-            'ner_tags'     : line['ner_tags'],
-        }
-        i += 1
-        data_train.append(o)
 
-    i = 0
-    for line in conll2003['validation']:
-        o = {
-            'id'           : i,
-            'tokens'       : line['tokens'],
-            'pos_tags'     : line['pos_tags'],
-            'pos_tags_text': [id_to_postag[x] for x in line['pos_tags']],
-            'ner_tags'     : line['ner_tags'],
-        }
-        i += 1
-        data_val.append(o)
+    conll2003_train_test = conll2003['train'].train_test_split(seed=1, test_size=0.01)
+    
+
+    for data, destination in zip([conll2003_train_test['train'], conll2003_train_test['test'], conll2003['validaiton'], conll2003['test']], [data_train, data_val_train, data_val, data_test]):
+        i = 0
+        for line in data:
+            o = {
+                'id'           : i,
+                'tokens'       : line['tokens'],
+                'pos_tags'     : line['pos_tags'],
+                'pos_tags_text': [id_to_postag[x] for x in line['pos_tags']],
+                'ner_tags'     : line['ner_tags'],
+            }
+            i += 1
+            destination.append(o)
             
-    i = 0
-    for line in conll2003['test']:
-        o = {
-            'id'           : i,
-            'tokens'       : line['tokens'],
-            'pos_tags'     : line['pos_tags'],
-            'pos_tags_text': [id_to_postag[x] for x in line['pos_tags']],
-            'ner_tags'     : line['ner_tags'],
-        }
-        i += 1
-        data_test.append(o)
-
 
     dataset = DatasetDict({
         'train'     : Dataset.from_list(data_train),
+        'val_train' : Dataset.from_list(data_val_train),
         'validation': Dataset.from_list(data_val),
         'test'      : Dataset.from_list(data_test),
 
@@ -81,7 +69,9 @@ def get_conll2003():
 
     return (dataset, label_to_id, id_to_label)
 
-
+"""
+Wrap ontonotes
+"""
 def get_ontonotes():
     conll2012 = load_dataset('conll2012_ontonotesv5', 'english_v4')
 
@@ -90,48 +80,26 @@ def get_ontonotes():
     postag_to_id = {v:k for (k, v) in id_to_postag.items()}
 
 
-    data_train = []
-    data_val   = []
-    data_test  = []
+    data_train     = []
+    data_val_train = []
+    data_val       = []
+    data_test      = []
 
-    i = 0
-    for line in conll2012['train']:
-        for s in line['sentences']:
-            o = {
-                'id'           : i,
-                'tokens'       : s['words'],
-                'pos_tags'     : s['pos_tags'],
-                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
-                'ner_tags'     : s['named_entities'],
-            }
-            i += 1
-            data_train.append(o)
+    conll2012_train_test = conll2012['train'].train_test_split(seed=1, test_size=0.01)
 
-    i = 0
-    for line in conll2012['validation']:
-        for s in line['sentences']:
-            o = {
-                'id'           : i,
-                'tokens'       : s['words'],
-                'pos_tags'     : s['pos_tags'],
-                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
-                'ner_tags'     : s['named_entities'],
-            }
-            i += 1
-            data_val.append(o)
-            
-    i = 0
-    for line in conll2012['test']:
-        for s in line['sentences']:
-            o = {
-                'id'           : i,
-                'tokens'       : s['words'],
-                'pos_tags'     : s['pos_tags'],
-                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
-                'ner_tags'     : s['named_entities'],
-            }
-            i += 1
-            data_test.append(o)
+    for data, destination in zip([conll2012_train_test['train'], conll2012_train_test['test'], conll2012['validaiton'], conll2012['test']], [data_train, data_val_train, data_val, data_test]):
+        i = 0
+        for line in data:
+            for s in line['sentences']:
+                o = {
+                    'id'           : i,
+                    'tokens'       : s['words'],
+                    'pos_tags'     : s['pos_tags'],
+                    'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
+                    'ner_tags'     : s['named_entities'],
+                }
+                i += 1
+                destination.append(o)
 
 
 
@@ -141,6 +109,7 @@ def get_ontonotes():
 
     dataset = DatasetDict({
         'train'     : Dataset.from_list(data_train),
+        'val_train' : Dataset.from_list(data_val_train),
         'validation': Dataset.from_list(data_val),
         'test'      : Dataset.from_list(data_test),
 
@@ -149,7 +118,9 @@ def get_ontonotes():
     return (dataset, label_to_id, id_to_label)
 
 
-
+"""
+Wrap FewNERD coarse-grained
+"""
 def get_fewnerd_cg():
     fewnerd = load_dataset('DFKI-SLT/few-nerd', 'supervised')
     # Just for completeness, in case we might end up using them
@@ -160,43 +131,28 @@ def get_fewnerd_cg():
     label_to_id = {v:k for (k, v) in id_to_label.items()}
 
 
-    data_train = []
-    data_val   = []
-    data_test  = []
+    data_train     = []
+    data_val_train = []
+    data_val       = []
+    data_test      = []
 
-    i = 0
-    for line in fewnerd['train']:
-        o = {
-            'id'           : i,
-            'tokens'       : line['tokens'],
-            'ner_tags'     : line['ner_tags'],
-        }
-        i += 1
-        data_train.append(o)
+    fewnerd_train_test = fewnerd['train'].train_test_split(seed=1, test_size=0.01)
 
-    i = 0
-    for line in fewnerd['validation']:
-        o = {
-            'id'           : i,
-            'tokens'       : line['tokens'],
-            'ner_tags'     : line['ner_tags'],
-        }
-        i += 1
-        data_val.append(o)
-            
-    i = 0
-    for line in fewnerd['test']:
-        o = {
-            'id'           : i,
-            'tokens'       : line['tokens'],
-            'ner_tags'     : line['ner_tags'],
-        }
-        i += 1
-        data_test.append(o)
+    for data, destination in zip([fewnerd_train_test['train'], fewnerd_train_test['test'], fewnerd['validaiton'], fewnerd['test']], [data_train, data_val_train, data_val, data_test]):
+        i = 0
+        for line in data:
+            o = {
+                'id'           : i,
+                'tokens'       : line['tokens'],
+                'ner_tags'     : line['ner_tags'],
+            }
+            i += 1
+            destination.append(o)
 
 
     dataset = DatasetDict({
         'train'     : Dataset.from_list(data_train),
+        'val_train' : Dataset.from_list(data_val_train),
         'validation': Dataset.from_list(data_val),
         'test'      : Dataset.from_list(data_test),
 
@@ -204,55 +160,39 @@ def get_fewnerd_cg():
 
     return (dataset, label_to_id, id_to_label)
 
-
+"""
+Wrap FewNERD coarse-grained
+"""
 def get_fewnerd_fg():
     fewnerd = load_dataset('DFKI-SLT/few-nerd', 'supervised')
     # Just for completeness, in case we might end up using them
 
 
-    # O (0), art (1), building (2), event (3), location (4), organization (5), other(6), person (7), product (8)
     labels = [f'B-{x.upper()}' if x != 'O' else x.upper() for x in fewnerd['train'].features['fine_ner_tags'].feature.names]
     id_to_label = {i:k for (i, k) in enumerate(labels)}
     label_to_id = {v:k for (k, v) in id_to_label.items()}
 
+    data_train     = []
+    data_val_train = []
+    data_val       = []
+    data_test      = []
 
-    data_train = []
-    data_val   = []
-    data_test  = []
+    fewnerd_train_test = fewnerd['train'].train_test_split(seed=1, test_size=0.01)
 
-    i = 0
-    for line in fewnerd['train']:
-        o = {
-            'id'           : i,
-            'tokens'       : line['tokens'],
-            'ner_tags'     : line['fine_ner_tags'],
-        }
-        i += 1
-        data_train.append(o)
-
-    i = 0
-    for line in fewnerd['validation']:
-        o = {
-            'id'           : i,
-            'tokens'       : line['tokens'],
-            'ner_tags'     : line['fine_ner_tags'],
-        }
-        i += 1
-        data_val.append(o)
-            
-    i = 0
-    for line in fewnerd['test']:
-        o = {
-            'id'           : i,
-            'tokens'       : line['tokens'],
-            'ner_tags'     : line['fine_ner_tags'],
-        }
-        i += 1
-        data_test.append(o)
-
+    for data, destination in zip([fewnerd_train_test['train'], fewnerd_train_test['test'], fewnerd['validaiton'], fewnerd['test']], [data_train, data_val_train, data_val, data_test]):
+        i = 0
+        for line in data:
+            o = {
+                'id'           : i,
+                'tokens'       : line['tokens'],
+                'ner_tags'     : line['fine_ner_tags'],
+            }
+            i += 1
+            destination.append(o)
 
     dataset = DatasetDict({
         'train'     : Dataset.from_list(data_train),
+        'val_train' : Dataset.from_list(data_val_train),
         'validation': Dataset.from_list(data_val),
         'test'      : Dataset.from_list(data_test),
 
