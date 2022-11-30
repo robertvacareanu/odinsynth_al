@@ -150,10 +150,114 @@ def get_ontonotes():
 
 
 
-"""
-Given a dataset split, select random points
-"""
-def select_randomly_from_dataset(dataset, ratio=0.01):
-    selected_indices = random.sample(range(0, len(dataset['train'])), int(len(dataset['train']) * ratio))
-    return dataset.select(selected_indices)
+def get_fewnerd_cg():
+    fewnerd = load_dataset('DFKI-SLT/few-nerd', 'supervised')
+    # Just for completeness, in case we might end up using them
+
+
+    labels = [f'B-{x.upper()}' if x != 'O' else x.upper() for x in fewnerd['train'].features['ner_tags'].feature.names]
+    id_to_label = {i:k for (i, k) in enumerate(labels)}
+    label_to_id = {v:k for (k, v) in id_to_label.items()}
+
+
+    data_train = []
+    data_val   = []
+    data_test  = []
+
+    i = 0
+    for line in fewnerd['train']:
+        o = {
+            'id'           : i,
+            'tokens'       : line['tokens'],
+            'ner_tags'     : line['ner_tags'],
+        }
+        i += 1
+        data_train.append(o)
+
+    i = 0
+    for line in fewnerd['validation']:
+        o = {
+            'id'           : i,
+            'tokens'       : line['tokens'],
+            'ner_tags'     : line['ner_tags'],
+        }
+        i += 1
+        data_val.append(o)
+            
+    i = 0
+    for line in fewnerd['test']:
+        o = {
+            'id'           : i,
+            'tokens'       : line['tokens'],
+            'ner_tags'     : line['ner_tags'],
+        }
+        i += 1
+        data_test.append(o)
+
+
+    dataset = DatasetDict({
+        'train'     : Dataset.from_list(data_train),
+        'validation': Dataset.from_list(data_val),
+        'test'      : Dataset.from_list(data_test),
+
+    })
+
+    return (dataset, label_to_id, id_to_label)
+
+
+def get_fewnerd_fg():
+    fewnerd = load_dataset('DFKI-SLT/few-nerd', 'supervised')
+    # Just for completeness, in case we might end up using them
+
+
+    # O (0), art (1), building (2), event (3), location (4), organization (5), other(6), person (7), product (8)
+    labels = [f'B-{x.upper()}' if x != 'O' else x.upper() for x in fewnerd['train'].features['fine_ner_tags'].feature.names]
+    id_to_label = {i:k for (i, k) in enumerate(labels)}
+    label_to_id = {v:k for (k, v) in id_to_label.items()}
+
+
+    data_train = []
+    data_val   = []
+    data_test  = []
+
+    i = 0
+    for line in fewnerd['train']:
+        o = {
+            'id'           : i,
+            'tokens'       : line['tokens'],
+            'ner_tags'     : line['fine_ner_tags'],
+        }
+        i += 1
+        data_train.append(o)
+
+    i = 0
+    for line in fewnerd['validation']:
+        o = {
+            'id'           : i,
+            'tokens'       : line['tokens'],
+            'ner_tags'     : line['fine_ner_tags'],
+        }
+        i += 1
+        data_val.append(o)
+            
+    i = 0
+    for line in fewnerd['test']:
+        o = {
+            'id'           : i,
+            'tokens'       : line['tokens'],
+            'ner_tags'     : line['fine_ner_tags'],
+        }
+        i += 1
+        data_test.append(o)
+
+
+    dataset = DatasetDict({
+        'train'     : Dataset.from_list(data_train),
+        'validation': Dataset.from_list(data_val),
+        'test'      : Dataset.from_list(data_test),
+
+    })
+
+    return (dataset, label_to_id, id_to_label)
+
 
