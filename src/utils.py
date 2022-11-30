@@ -163,11 +163,13 @@ class ALAnnotation:
         - `drop_all_unknown`             -> All unlabeled tokens are simply dropped
         - `mask_entity_looking_unknowns` -> Everything that looks like an entity (i.e. `NNP+ (IN NNP+)?`) receives -100 ner tag
         - `drop_entity_looking_unknowns` -> Everything that looks like an entity (i.e. `NNP+ (IN NNP+)?`) is dropped
-        - `dynamic_window`               -> 
+        - `dynamic_window`               -> Every match will have its own sentence, extending as far as possible to the left/right
     
     As an implementation strategy, we map every tag that is not NNP or IN to `O`. We map every `NNP` to `N` and ever `IN` to I
     This is only done to make working with regex simple
-    The rule then becomes: `(N+(?:IN+)?)`
+    The rule then becomes: `(N+(?:IN+)?)` (N -> NNP, I -> IN). We use `re` from python
+    and replace part-of-speech tags wtih single letter. Everything not in the pattern is
+    replaced with `O`.
         
     """
     def get_training_annotations(self, annotation_strategy: str) -> List[Dict[str, Any]]:
