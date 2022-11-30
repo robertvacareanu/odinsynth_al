@@ -91,16 +91,18 @@ initial_dataset_sampling_to_fn = {
 }
 
 dataset_name_to_fn = {
-    'conll2003': get_conll2003,
-    'ontonotes': get_ontonotes,
+    'conll2003' : get_conll2003,
+    'ontonotes' : get_ontonotes,
+    'fewnerd_cg': get_fewnerd_cg,
+    'fewnerd_fg': get_fewnerd_fg,
 }
 
 
 query_strategy_function = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']][args['query_strategy_function']]
 query_random = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']]['random_query']
 
+# ner_dataset, label_to_id, id_to_label = dataset_name_to_fn[args['dataset_name']]()
 ner_dataset, label_to_id, id_to_label = dataset_name_to_fn[args['dataset_name']]()
-
 if args['use_full_dataset']:
     starting_size_ratio = 1.0
     starting_size       = len(ner_dataset['train'])
@@ -129,8 +131,10 @@ selected_dataset_so_far = dict([(x, ALAnnotation.from_line(line=ner_dataset['tra
 
 tokenizer = AutoTokenizer.from_pretrained(args['underlying_model'])
 
+print("Tokenized everything")
 # Tokenize everything
 tokenized_ner_dataset = ner_dataset.map(lambda x: tokenize_and_align_labels(tokenizer, x), batched=True)
+print("Everything tokenized")
 
 data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer, return_tensors="pt")
 metric = evaluate.load("seqeval")
@@ -157,16 +161,32 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
 
     # Create the new dataset using all the selected indices
     # Then, overwrite the labels by using only the labels we have annotated so far
-    data  = [{**ner_dataset["train"][x], 'ner_tags': selected_dataset_so_far[x].ner_tags} for x in selected_indices]
+    data  = []
+    # print("Prepare the dataset")
+    import tqdm
+    for x in tqdm.tqdm(selected_indices):
+        for sdsf in selected_dataset_so_far[x].get_training_annotations(args['training_annotation_style']):
+            data.append(sdsf)
+        # data.append({
+        #     **ner_dataset["train"][x],
+        #     'ner_tags': selected_dataset_so_far[x].ner_tags
+        # })
+    # print("Dataset prepared")
+        
+    # data  = [{**ner_dataset["train"][x], 'ner_tags': selected_dataset_so_far[x].ner_tags} for x in selected_indices]
     data  = Dataset.from_list(data).map(lambda x: tokenize_and_align_labels(tokenizer, x), batched=True, load_from_cache_file=False)
+    print("Dataset tokenized")
 
     # Use `Z` for 'O' to artificialy push it to the end of the sorted list
     selected_data_distribution = sorted(Counter([id_to_label[x] for x in [z for y in selected_dataset_so_far.values() for z in y.get_annotated_tokens()]]).items(), key=lambda x: ('Z', 'Z') if x[0] == 'O' else (x[0][2:], x[0][:2]))
     number_of_annotated_tokens = sum([x[1].number_of_annotated_tokens() for x in list(selected_dataset_so_far.items())])
-    print(f"Total number of sentences partially or fully annotated: {len(data)}")
+    total_number_of_unmasked_tokens = len([y for x in data['labels'] for y in x if y != -100])
+    print(f"Total number of selected indices: {len(selected_indices)}")
+    print(f"Total number of training sentences partially or fully annotated: {len(data)}")
     print(f"Total number of annotated tokens: {sum([x.number_of_annotated_tokens() for x in selected_dataset_so_far.values()])}")
     print(f"Total number of non-O tokens: {sum([1 for x in selected_dataset_so_far.values() for y in x.get_annotated_tokens() if y != 0])}")
     print(f"Total number of each token type: {selected_data_distribution}")
+    print(f"Total number of unmasked tokens: {total_number_of_unmasked_tokens}")
 
     training_args = TrainingArguments(
         output_dir="./outputs",
