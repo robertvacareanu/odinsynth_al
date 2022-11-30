@@ -90,7 +90,7 @@ def annotate(dataset, selected_dataset_so_far: List[Tuple[int, ALAnnotation]], s
             # Otherwise, get a clean list of `-100`
             # Also, we get a copy of it
             if sid in selected_dataset_so_far_dict:
-                labels_so_far = [*selected_dataset_so_far_dict[sid].ner_tags]
+                labels_so_far = [*selected_dataset_so_far_dict[sid].al_annotated_ner_tags]
             else:
                 labels_so_far = [-100] * len(line_labels)
                 
