@@ -51,7 +51,7 @@ def tfidf_initial_dataset_sampling(train_text, **kwargs):
 def tfidf_kmeans_initial_dataset_sampling(train_text, **kwargs):
 
     starting_size = kwargs['starting_size']
-    vectorizer = TfidfVectorizer(stop_words = 'english', ngram_range=(1,2), norm='l2')
+    vectorizer = TfidfVectorizer(stop_words = 'english', ngram_range=(1,1), norm='l2')
 
     X     = vectorizer.fit_transform(train_text)
 
