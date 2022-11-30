@@ -64,6 +64,7 @@ def compute_metrics(predictions, labels, id_to_label, metric=evaluate.load("seqe
             "accuracy": results["overall_accuracy"],
         }
 
+
 def init_random(seed):
     """
     Init torch, torch.cuda and numpy with same seed. For reproducibility.
@@ -177,6 +178,7 @@ class ALAnnotation:
                 'ner_tags': self.al_annotated_ner_tags,
             }
             return [output_dict]
+        # Everything that is unknown is simply removed
         elif annotation_strategy == 'drop_all_unknown':
             output_dict = {
                 **self.original_dict,
@@ -191,6 +193,7 @@ class ALAnnotation:
             if len(output_dict['tokens']) == 0 or len(output_dict['ner_tags']) == 0:
                 raise ValueError("Something unannotated is in the annotated list. Is everything ok?")
             return [output_dict]
+        # Things that look like entities and are unannotated are masked
         elif annotation_strategy == 'mask_entity_looking_unknowns':
             pos_tags = []
             for tag in self.original_dict['pos_tags_text']:
@@ -228,6 +231,7 @@ class ALAnnotation:
             })
 
             return output
+        # Things that look like entities and are unannotated are dropped
         elif annotation_strategy == 'drop_entity_looking_unknowns':
             pos_tags = []
             for tag in self.original_dict['pos_tags_text']:
@@ -277,6 +281,7 @@ class ALAnnotation:
             })
 
             return output
+        # We use a new sentence for each entity candidate
         elif annotation_strategy == 'dynamic_window':
             pos_tags = []
             for tag in self.original_dict['pos_tags_text']:
