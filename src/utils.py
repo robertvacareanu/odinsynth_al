@@ -213,7 +213,7 @@ class ALAnnotation:
             # We iterate over all annotations and overwrite
             # if it is not -100
             for i, nt in enumerate(self.al_annotated_ner_tags):
-                if nt != 100:
+                if nt != -100:
                     ner_tags[i] = nt
 
             # We iterate over each match
