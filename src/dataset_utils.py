@@ -37,42 +37,39 @@ def get_conll2003():
 
     i = 0
     for line in conll2003['train']:
-        for s in line['sentences']:
-            o = {
-                'id'           : i,
-                'tokens'       : s['tokens'],
-                'pos_tags'     : s['pos_tags'],
-                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
-                'ner_tags'     : s['ner_tags'],
-            }
-            i += 1
-            data_train.append(o)
+        o = {
+            'id'           : i,
+            'tokens'       : line['tokens'],
+            'pos_tags'     : line['pos_tags'],
+            'pos_tags_text': [id_to_postag[x] for x in line['pos_tags']],
+            'ner_tags'     : line['ner_tags'],
+        }
+        i += 1
+        data_train.append(o)
 
     i = 0
     for line in conll2003['validation']:
-        for s in line['sentences']:
-            o = {
-                'id'           : i,
-                'tokens'       : s['tokens'],
-                'pos_tags'     : s['pos_tags'],
-                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
-                'ner_tags'     : s['ner_tags'],
-            }
-            i += 1
-            data_val.append(o)
+        o = {
+            'id'           : i,
+            'tokens'       : line['tokens'],
+            'pos_tags'     : line['pos_tags'],
+            'pos_tags_text': [id_to_postag[x] for x in line['pos_tags']],
+            'ner_tags'     : line['ner_tags'],
+        }
+        i += 1
+        data_val.append(o)
             
     i = 0
     for line in conll2003['test']:
-        for s in line['sentences']:
-            o = {
-                'id'           : i,
-                'tokens'       : s['tokens'],
-                'pos_tags'     : s['pos_tags'],
-                'pos_tags_text': [id_to_postag[x] for x in s['pos_tags']],
-                'ner_tags'     : s['ner_tags'],
-            }
-            i += 1
-            data_test.append(o)
+        o = {
+            'id'           : i,
+            'tokens'       : line['tokens'],
+            'pos_tags'     : line['pos_tags'],
+            'pos_tags_text': [id_to_postag[x] for x in line['pos_tags']],
+            'ner_tags'     : line['ner_tags'],
+        }
+        i += 1
+        data_test.append(o)
 
 
     dataset = DatasetDict({
