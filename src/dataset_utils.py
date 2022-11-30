@@ -15,7 +15,7 @@ Wrap the conll2003 info here
 Needed because, besides the `load_dataset` call,
 we might want to know the id to label mapping (i.e. `O` -> 0, etc) etc
 """
-def get_conll2003():
+def get_conll2003(args):
     conll2003 = load_dataset("conll2003")
 
     # Just for completeness, in case we might end up using them
@@ -42,10 +42,17 @@ def get_conll2003():
     data_test      = []
 
 
-    conll2003_train_test = conll2003['train'].train_test_split(seed=1, test_size=0.01)
+    # If we use the full dataset we use the full validation too; The `validation` one, not the sampled one
+    if args['use_full_dataset']:
+        conll2003_train_test = DatasetDict({
+            'train': conll2003['train'],
+            'test': conll2003['validation'],
+        })
+    else:
+        conll2003_train_test = conll2003['train'].train_test_split(seed=1, test_size=0.01)
     
 
-    for data, destination in zip([conll2003_train_test['train'], conll2003_train_test['test'], conll2003['validaiton'], conll2003['test']], [data_train, data_val_train, data_val, data_test]):
+    for data, destination in zip([conll2003_train_test['train'], conll2003_train_test['test'], conll2003['validation'], conll2003['test']], [data_train, data_val_train, data_val, data_test]):
         i = 0
         for line in data:
             o = {
@@ -72,7 +79,7 @@ def get_conll2003():
 """
 Wrap ontonotes
 """
-def get_ontonotes():
+def get_ontonotes(args):
     conll2012 = load_dataset('conll2012_ontonotesv5', 'english_v4')
 
     postags = ["XX", "``", "$", "''", ",", "-LRB-", "-RRB-", ".", ":", "ADD", "AFX", "CC", "CD", "DT", "EX", "FW", "HYPH", "IN", "JJ", "JJR", "JJS", "LS", "MD", "NFP", "NN", "NNP", "NNPS", "NNS", "PDT", "POS", "PRP", "PRP$", "RB", "RBR", "RBS", "RP", "SYM", "TO", "UH", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ", "WDT", "WP", "WP$", "WRB",]
@@ -85,9 +92,16 @@ def get_ontonotes():
     data_val       = []
     data_test      = []
 
-    conll2012_train_test = conll2012['train'].train_test_split(seed=1, test_size=0.01)
+    # If we use the full dataset we use the full validation too; The `validation` one, not the sampled one
+    if args['use_full_dataset']:
+        conll2012_train_test = DatasetDict({
+            'train': conll2012['train'],
+            'test': conll2012['validation'],
+        })
+    else:
+        conll2012_train_test = conll2012['train'].train_test_split(seed=1, test_size=0.01)
 
-    for data, destination in zip([conll2012_train_test['train'], conll2012_train_test['test'], conll2012['validaiton'], conll2012['test']], [data_train, data_val_train, data_val, data_test]):
+    for data, destination in zip([conll2012_train_test['train'], conll2012_train_test['test'], conll2012['validation'], conll2012['test']], [data_train, data_val_train, data_val, data_test]):
         i = 0
         for line in data:
             for s in line['sentences']:
@@ -121,7 +135,7 @@ def get_ontonotes():
 """
 Wrap FewNERD coarse-grained
 """
-def get_fewnerd_cg():
+def get_fewnerd_cg(args):
     fewnerd = load_dataset('DFKI-SLT/few-nerd', 'supervised')
     # Just for completeness, in case we might end up using them
 
@@ -136,9 +150,16 @@ def get_fewnerd_cg():
     data_val       = []
     data_test      = []
 
-    fewnerd_train_test = fewnerd['train'].train_test_split(seed=1, test_size=0.01)
+    # If we use the full dataset we use the full validation too; The `validation` one, not the sampled one
+    if args['use_full_dataset']:
+        fewnerd_train_test = DatasetDict({
+            'train': fewnerd['train'],
+            'test': fewnerd['validation'],
+        })
+    else:
+        fewnerd_train_test = fewnerd['train'].train_test_split(seed=1, test_size=0.01)
 
-    for data, destination in zip([fewnerd_train_test['train'], fewnerd_train_test['test'], fewnerd['validaiton'], fewnerd['test']], [data_train, data_val_train, data_val, data_test]):
+    for data, destination in zip([fewnerd_train_test['train'], fewnerd_train_test['test'], fewnerd['validation'], fewnerd['test']], [data_train, data_val_train, data_val, data_test]):
         i = 0
         for line in data:
             o = {
@@ -163,7 +184,7 @@ def get_fewnerd_cg():
 """
 Wrap FewNERD coarse-grained
 """
-def get_fewnerd_fg():
+def get_fewnerd_fg(args):
     fewnerd = load_dataset('DFKI-SLT/few-nerd', 'supervised')
     # Just for completeness, in case we might end up using them
 
@@ -177,9 +198,16 @@ def get_fewnerd_fg():
     data_val       = []
     data_test      = []
 
-    fewnerd_train_test = fewnerd['train'].train_test_split(seed=1, test_size=0.01)
+    # If we use the full dataset we use the full validation too; The `validation` one, not the sampled one
+    if args['use_full_dataset']:
+        fewnerd_train_test = DatasetDict({
+            'train': fewnerd['train'],
+            'test': fewnerd['validation'],
+        })
+    else:
+        fewnerd_train_test = fewnerd['train'].train_test_split(seed=1, test_size=0.01)
 
-    for data, destination in zip([fewnerd_train_test['train'], fewnerd_train_test['test'], fewnerd['validaiton'], fewnerd['test']], [data_train, data_val_train, data_val, data_test]):
+    for data, destination in zip([fewnerd_train_test['train'], fewnerd_train_test['test'], fewnerd['validation'], fewnerd['test']], [data_train, data_val_train, data_val, data_test]):
         i = 0
         for line in data:
             o = {

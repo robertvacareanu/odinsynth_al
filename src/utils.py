@@ -54,6 +54,7 @@ def compute_metrics(predictions, labels, id_to_label, metric=evaluate.load("seqe
     ]
 
     results = metric.compute(predictions=true_predictions, references=true_labels)
+    
     if verbose:
         return results
     else:

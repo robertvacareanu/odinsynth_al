@@ -1,9 +1,12 @@
 import json
 from collections import Counter
+import math
+from random import random
 
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
 from transformers import DataCollatorForTokenClassification
 from transformers import AutoTokenizer
+from transformers.trainer_callback import EarlyStoppingCallback
 from datasets import Dataset
 import evaluate
 
@@ -101,8 +104,11 @@ dataset_name_to_fn = {
 query_strategy_function = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']][args['query_strategy_function']]
 query_random = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']]['random_query']
 
-# ner_dataset, label_to_id, id_to_label = dataset_name_to_fn[args['dataset_name']]()
-ner_dataset, label_to_id, id_to_label = dataset_name_to_fn[args['dataset_name']]()
+dataset_name=args['dataset_name']
+ner_dataset, label_to_id, id_to_label = dataset_name_to_fn[dataset_name](args)
+
+total_number_of_tokens_available = len([y for x in ner_dataset['train'] for y in x['tokens']])
+
 if args['use_full_dataset']:
     starting_size_ratio = 1.0
     starting_size       = len(ner_dataset['train'])
@@ -187,26 +193,34 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
     print(f"Total number of non-O tokens: {sum([1 for x in selected_dataset_so_far.values() for y in x.get_annotated_tokens() if y != 0])}")
     print(f"Total number of each token type: {selected_data_distribution}")
     print(f"Total number of unmasked tokens: {total_number_of_unmasked_tokens}")
+    print(f"Total number of tokens available in the dataset: {total_number_of_tokens_available}")
+    print(f"Total percentage of annotated tokens: {number_of_annotated_tokens/total_number_of_tokens_available}")
 
     training_args = TrainingArguments(
-        output_dir="./outputs",
-        # evaluation_strategy="epoch",
+        output_dir=f"./outputs/{dataset_name}",
+        evaluation_strategy="steps",
+        save_steps=math.ceil(len(data)/(args['train_batch_size'] * 4)),
+        eval_steps=math.ceil(len(data)/(args['train_batch_size'] * 4)),
         learning_rate=learning_rate,
         per_device_train_batch_size=args['train_batch_size'],
         per_device_eval_batch_size=args['eval_batch_size'],
         num_train_epochs=epochs,
         weight_decay=0.01,
-        save_strategy="no",
+        save_strategy="steps",
+        load_best_model_at_end=True, 
+        metric_for_best_model='overall_f1', 
+        greater_is_better=True,
     )
 
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=data,
-        # eval_dataset=tokenized_ner_dataset["validation"],
+        eval_dataset=tokenized_ner_dataset["val_train"],
         tokenizer=tokenizer,
         data_collator=data_collator,
-        compute_metrics=lambda x: compute_metrics(x[0], x[1], id_to_label, metric=metric, verbose=True)
+        compute_metrics=lambda x: compute_metrics(x[0], x[1], id_to_label, metric=metric, verbose=True),
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=args['early_stopping_patience'])],
     )
 
     trainer.train()
@@ -238,19 +252,39 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
         # We let the dataloader do the shuffling during training and we ensure the same order of the dataset initially
         selected_indices = sorted(list(selected_dataset_so_far.keys()))
 
-    predictions_val = trainer.predict(tokenized_ner_dataset["validation"])
+    predictions_val  = trainer.predict(tokenized_ner_dataset["validation"])
+    predictions_tval = trainer.predict(tokenized_ner_dataset["val_train"])
+    predictions_test = trainer.predict(tokenized_ner_dataset["test"])
     if args['verbose']:
+        # print("----------------------")
+        # print("------VALIDATION------")
         verbose_performance_printing(predictions_val, active_learning_iteration)
+        # print("------VALIDATION------")
+        # print("----------------------")
+        # print("----------------------")
+        # print("---TRAIN-VALIDATION---")
+        # verbose_performance_printing(predictions_tval, active_learning_iteration)
+        # print("---TRAIN-VALIDATION---")
+        # print("----------------------")
+        # print("----------------------")
+        # print("----------------------")
+        # print("---------TEST---------")
+        # # verbose_performance_printing(predictions_test, active_learning_iteration)
+        # print("---------TEST---------")
+        # print("----------------------")
         
     all_results.append(
         {
             'active_learning_iteration': active_learning_iteration,
-            **predictions_val.metrics, 
+            'val_metrics'                       : {**predictions_val.metrics}, 
+            'train-val_metrics'                 : {**predictions_tval.metrics}, 
+            'test_metrics'                      : {**predictions_test.metrics}, # We record test metrics for efficiency purposes, to avoid re-running everything to gather them; Decisions are made on validation only
             # 'all_data_distribution'     : [(id_to_label[x[0]], x[1]) for x in Counter([y for x in ner_dataset['train'].select(selected_indices)['ner_tags'] for y in x]).items()],
             'annotation_strategy'               : args['annotation_strategy'],
             'query_strategy_function'           : args['query_strategy_function'],
             'number_of_al_iterations'           : args['number_of_al_iterations'],
             'number_of_annotated_tokens'        : number_of_annotated_tokens,
+            'percentage_of_annotated_tokens'    : number_of_annotated_tokens/total_number_of_tokens_available,
             'selected_data_distribution'        : selected_data_distribution,
             'seed'                              : args['seed'],
             'starting_size_ratio'               : starting_size_ratio,
@@ -261,7 +295,8 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
             'initial_dataset_selection_strategy': args['initial_dataset_selection_strategy'],
             'underlying_model'                  : args['underlying_model'],
             'training_annotation_style'         : args['training_annotation_style'],
-            'dataset_name'                      : args['dataset_name'],
+            'dataset_name'                      : dataset_name,
+            'total_number_of_tokens_available'  : total_number_of_tokens_available,
         }
     )
 

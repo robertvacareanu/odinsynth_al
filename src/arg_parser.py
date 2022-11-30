@@ -31,6 +31,7 @@ def base_parser(parent_parser):
     subparser.add_argument('--append_logs_to_file', type=str, default=None)
     subparser.add_argument('--verbose', action='store_true')
     subparser.add_argument('--dataset_name', type=str, default='conll2003', choices=['conll2003', 'ontonotes', 'fewnerd_cg', 'fewnerd_fg'])
+    subparser.add_argument('--early_stopping_patience', type=int, default=3)
     subparser.add_argument('--train_batch_size', type=int, default=8)
     subparser.add_argument('--eval_batch_size', type=int, default=16)
     subparser.add_argument('--initial_dataset_selection_strategy_top_k', type=int, default=5)
