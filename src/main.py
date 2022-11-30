@@ -108,8 +108,20 @@ else:
     starting_size_ratio = args['starting_size_ratio']
     starting_size       = int(len(ner_dataset['train']) * starting_size_ratio)
 
-selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']]([' '.join(x) for x in ner_dataset['train']['tokens']], starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
-# selected_indices = random.sample(range(0, len(ner_dataset['train'])), starting_size)
+# selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']]([' '.join(x) for x in ner_dataset['train']['tokens']], starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
+text = []
+for line in ner_dataset['train']:
+    sent = []
+    if args['use_postags_for_selection']:
+        for token, tag in zip(line['tokens'], line['pos_tags_text']):
+            if 'NNP' in tag:
+                sent.append(token)
+    else:
+        for token in line['tokens']:
+            sent.append(token)
+    text.append(' '.join(sent))
+selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']](text, starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
+
 selected_indices_set = set(selected_indices)
 
 # This list holds what we have selected so far
