@@ -13,6 +13,7 @@ We perform the decision based on the individual token's prediction,
 but at the end we return sentences
 """
 import random
+import numpy as np
 from scipy.stats import entropy
 from typing import List, Tuple
 from src.query_strategies.utils import annotate
@@ -116,6 +117,35 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
 
 
+def breaking_ties_bernoulli_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, List[int]]]:
+    aggregation_function = kwargs.get('aggregation_function', min)
+    margins = [[sorted(y, reverse=True)[:2] for y in x] for x in predictions]
+    margins = [aggregation_function([y[0] - y[1] for y in x]) for x in margins]
+
+    margins_and_indices = list(zip(range(len(margins)), margins))
+
+    sorted_margins_and_indices = sorted(margins_and_indices, key=lambda x: x[1])
+
+    dataset_so_far = dict(kwargs.get('dataset_so_far'))
+
+    selected_indices = [x[0] for x in sorted_margins_and_indices if x[0] not in dataset_so_far]
+
+    weights  = np.array([x[1] for x in sorted_margins_and_indices])
+    weights  = 1/weights
+    probs    = weights/np.sum(weights)
+    sampled  = np.random.choice(selected_indices, min(k, len(selected_indices)), p=probs, replace=False).tolist()
+
+
+    dataset = kwargs.get('dataset')
+    output  = []
+    for si in sampled:
+        output.append(si)
+        
+    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
+
+
+
+
 
 """
 Little test
@@ -146,3 +176,4 @@ if __name__ == "__main__":
     print(breaking_ties_query(predictions, k=2))
     print(random_query(predictions, k=2))
     print(prediction_entropy_query(predictions, k=2))
+    print(breaking_ties_bernoulli_query(predictions, k=2))

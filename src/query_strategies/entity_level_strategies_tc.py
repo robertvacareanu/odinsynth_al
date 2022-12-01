@@ -33,6 +33,7 @@ All functions implemented here are expecting, additionally:
 """
 from collections import defaultdict
 import random
+import numpy as np
 from scipy.stats import entropy
 from typing import Any, List, Tuple
 
@@ -209,7 +210,48 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
 
 
+"""
+A stochastic version of breaking ties
+"""
+def breaking_ties_bernoulli_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
+    token_and_sentence_ids = []
+    for sid, sentence in enumerate(predictions):
+        for tid, token in enumerate(sentence):
+            scores = sorted(token, reverse=True)[:2]
+            token_and_sentence_ids.append((sid, tid, scores[0] - scores[1]))
 
+    # Sort by margins
+    sorted_data = sorted(token_and_sentence_ids, key=lambda x: x[2])
+
+    # These are the selections to be annotated
+    # A list of (sentence_id, token_position)
+    sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
+    
+    sentence_and_token_ids = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))
+
+    # We already selected everything
+    if len(sentence_and_token_ids) == 0:
+        return kwargs.get('dataset_so_far')
+
+
+    weights  = np.array([x[2] for x in sorted_data])
+    weights  = 1/weights
+    probs    = weights/np.sum(weights)
+    sampled  = np.random.choice(np.array(sentence_and_token_ids, dtype="i,i"), min(k, len(sentence_and_token_ids)), p=probs, replace=False).tolist()
+
+    dataset = kwargs.get('dataset')
+    # Collapse every selection for every sentence
+    sentenceid_to_tokensid = defaultdict(list)
+    for (sid, tid) in sampled:
+        expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
+        sentenceid_to_tokensid[sid] += expanded_tid
+
+    # Ensure uniqueness
+    for (sid, _) in sampled:
+        sentenceid_to_tokensid[sid] = sorted(list(set(sentenceid_to_tokensid[sid])))
+
+    
+    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
 
 
 """
