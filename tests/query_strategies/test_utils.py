@@ -36,21 +36,21 @@ class TestEntityLevelStrategiesTokenClassification(unittest.TestCase):
         new_sentence_with_id2 = [x for x in new_dataset if x[0] == 2][0][1]
         
         # Sanity check that we are not doing modifications in-place
-        self.assertEquals(selected_dataset_so_far[0][1].ner_tags, labels0)
+        self.assertEquals(selected_dataset_so_far[0][1].al_annotated_ner_tags, labels0)
 
         # sentence 0 had only one token with missing annotations and we 
         # annotated that token. Check that now all labels are annotated
-        self.assertEquals(new_sentence_with_id0.ner_tags, conll2003[0]['ner_tags'])
+        self.assertEquals(new_sentence_with_id0.al_annotated_ner_tags, conll2003[0]['ner_tags'])
 
         # sentence 1 had everything annotated. Check that it still has everything
         # Additionally, sanity checks
-        self.assertEquals(new_sentence_with_id1.ner_tags, conll2003[1]['ner_tags'])
+        self.assertEquals(new_sentence_with_id1.al_annotated_ner_tags, conll2003[1]['ner_tags'])
         self.assertEquals(new_sentence_with_id1, selected_dataset_so_far[1][1])
 
         # sentence 2 was newly added, but only partially. Check that this is still the case
-        self.assertNotEquals(new_sentence_with_id2.ner_tags, conll2003[2]['ner_tags'])
+        self.assertNotEquals(new_sentence_with_id2.al_annotated_ner_tags, conll2003[2]['ner_tags'])
         # Check that the token we annotated is present
-        self.assertEquals(new_sentence_with_id2.ner_tags[0], conll2003[2]['ner_tags'][0])
+        self.assertEquals(new_sentence_with_id2.al_annotated_ner_tags[0], conll2003[2]['ner_tags'][0])
 
     """
     Check sentence-level annotation
@@ -80,10 +80,10 @@ class TestEntityLevelStrategiesTokenClassification(unittest.TestCase):
 
         self.assertEquals(new_sentence_with_id0, selected_dataset_so_far[0][1])
         self.assertEquals(new_sentence_with_id1, selected_dataset_so_far[1][1])
-        self.assertEquals(new_sentence_with_id0.ner_tags, conll2003[0]['ner_tags'])
-        self.assertEquals(new_sentence_with_id1.ner_tags, conll2003[1]['ner_tags'])
-        self.assertEquals(new_sentence_with_id2.ner_tags, conll2003[2]['ner_tags'])
-        self.assertEquals(new_sentence_with_id3.ner_tags, conll2003[3]['ner_tags'])
+        self.assertEquals(new_sentence_with_id0.al_annotated_ner_tags, conll2003[0]['ner_tags'])
+        self.assertEquals(new_sentence_with_id1.al_annotated_ner_tags, conll2003[1]['ner_tags'])
+        self.assertEquals(new_sentence_with_id2.al_annotated_ner_tags, conll2003[2]['ner_tags'])
+        self.assertEquals(new_sentence_with_id3.al_annotated_ner_tags, conll2003[3]['ner_tags'])
 
     def test_take_full_entity(self):
         label_to_id = {'O': 0, 'B-PER': 1, 'I-PER': 2, 'B-ORG': 3, 'I-ORG': 4, 'B-LOC': 5, 'I-LOC': 6, 'B-MISC': 7, 'I-MISC': 8}
@@ -169,7 +169,7 @@ class TestEntityLevelStrategiesTokenClassification(unittest.TestCase):
         selected_dataset_so_far.append((0, ALAnnotation.from_line({}, 0, labels0)))
         selected_dataset_so_far.append((1, ALAnnotation.from_line(conll2003[1], 1)))
 
-        filtered = filter_already_selected_sidtid_pairs(tid_sid=[(0,0), (0,1), (1,0), (1,1)], dataset_so_far=selected_dataset_so_far)
+        filtered = filter_already_selected_sidtid_pairs(sid_tid=[(0,0), (0,1), (1,0), (1,1)], dataset_so_far=selected_dataset_so_far)
         self.assertEqual(len(filtered), 1)
         self.assertEqual(filtered[0], (0,0))
 
