@@ -45,8 +45,8 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tu
     selected = [(x[0], x[1]) for x in sentence_and_token_ids]
 
     # We already selected everything
-    if len(selected) == 0:
-        return []
+    if len(sentence_and_token_ids) == 0:
+        return kwargs.get('dataset_so_far')
 
     # These are the selections to be annotated
     # A list of (sentence_id, token_position)
@@ -81,7 +81,7 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
 
     # We already selected everything
     if len(sentence_and_token_ids) == 0:
-        return []
+        return kwargs.get('dataset_so_far')
 
 
     dataset = kwargs.get('dataset')
@@ -110,7 +110,7 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
 
     # We already selected everything
     if len(sentence_and_token_ids) == 0:
-        return []
+        return kwargs.get('dataset_so_far')
 
     dataset = kwargs.get('dataset')
     
