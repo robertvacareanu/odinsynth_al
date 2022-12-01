@@ -115,21 +115,24 @@ if args['use_full_dataset']:
     starting_size       = len(ner_dataset['train'])
 else:
     starting_size_ratio = args['starting_size_ratio']
-    starting_size       = int(len(ner_dataset['train']) * starting_size_ratio)
+    starting_size       = min(int(len(ner_dataset['train']) * starting_size_ratio), len(ner_dataset['train']))
 
 # selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']]([' '.join(x) for x in ner_dataset['train']['tokens']], starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
-text = []
-for line in ner_dataset['train']:
-    sent = []
-    if args['use_postags_for_selection']:
-        for token, tag in zip(line['tokens'], line['pos_tags_text']):
-            if 'NNP' in tag:
+if not args['use_full_dataset']:
+    text = []
+    for line in ner_dataset['train']:
+        sent = []
+        if args['use_postags_for_selection']:
+            for token, tag in zip(line['tokens'], line['pos_tags_text']):
+                if 'NNP' in tag:
+                    sent.append(token)
+        else:
+            for token in line['tokens']:
                 sent.append(token)
-    else:
-        for token in line['tokens']:
-            sent.append(token)
-    text.append(' '.join(sent))
-selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']](text, starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
+        text.append(' '.join(sent))
+    selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']](text, starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
+else:
+    selected_indices = list(range(len(ner_dataset['train'])))
 
 selected_indices_set = set(selected_indices)
 
@@ -198,13 +201,13 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
     print(f"Total number of each token type: {selected_data_distribution}")
     print(f"Total number of unmasked tokens: {total_number_of_unmasked_tokens}")
     print(f"Total number of tokens available in the dataset: {total_number_of_tokens_available}")
-    print(f"Total percentage of annotated tokens: {number_of_annotated_tokens/total_number_of_tokens_available}")
+    print(f"Total percentage of annotated tokens: {(number_of_annotated_tokens/total_number_of_tokens_available) * 100}")
 
     training_args = TrainingArguments(
         output_dir=f"./outputs/{dataset_name}",
         evaluation_strategy="steps",
-        save_steps=math.ceil(len(data)/(args['train_batch_size'] * 4)),
-        eval_steps=math.ceil(len(data)/(args['train_batch_size'] * 4)),
+        save_steps=math.ceil(len(data)/(args['train_batch_size'] * 2)), # Twice every epoch
+        eval_steps=math.ceil(len(data)/(args['train_batch_size'] * 2)), # Twice every epoch
         learning_rate=learning_rate,
         per_device_train_batch_size=args['train_batch_size'],
         per_device_eval_batch_size=args['eval_batch_size'],
@@ -214,6 +217,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
         load_best_model_at_end=True, 
         metric_for_best_model='overall_f1', 
         greater_is_better=True,
+        overwrite_output_dir=True,
     )
 
     trainer = Trainer(
