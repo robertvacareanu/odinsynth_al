@@ -1,7 +1,8 @@
+import glob
 import json
 from collections import Counter
 import math
-from random import random
+import shutil
 
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
 from transformers import DataCollatorForTokenClassification
@@ -163,6 +164,9 @@ else:
 all_results = []
 
 for active_learning_iteration, number_of_new_examples, epochs, learning_rate in zip(range(number_of_al_iterations), number_of_new_examples_list, epochs_list, learning_rates_list):
+    # Remove all checkpoints before starting a new training procedure
+    for f in glob.glob(f'./outputs/{dataset_name}/checkpoint-*'):
+        shutil.rmtree(f)
     model = AutoModelForTokenClassification.from_pretrained(args['underlying_model'], num_labels=len(label_to_id))
 
     # Create the new dataset using all the selected indices
