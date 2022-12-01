@@ -288,7 +288,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
             'query_strategy_function'           : args['query_strategy_function'],
             'number_of_al_iterations'           : args['number_of_al_iterations'],
             'number_of_annotated_tokens'        : number_of_annotated_tokens,
-            'percentage_of_annotated_tokens'    : number_of_annotated_tokens/total_number_of_tokens_available,
+            'percentage_of_annotated_tokens'    : (number_of_annotated_tokens/total_number_of_tokens_available) * 100,
             'selected_data_distribution'        : selected_data_distribution,
             'seed'                              : args['seed'],
             'starting_size_ratio'               : starting_size_ratio,
