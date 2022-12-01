@@ -117,6 +117,13 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
 
 
+"""
+In this query implementation we select the top `k` by smallest score (i.e.
+a smaller score means the model is not sure)
+We use an aggregation function to transform a list of numbers (score for each token
+in the sentence) into a single number representative for the full sentence
+The default function here is: `min`
+"""
 def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
     token_and_sentence_ids = []
     for sid, sentence in enumerate(predictions):
