@@ -16,7 +16,7 @@ from src.arg_parser import get_argparser
 from src.dataset_utils import get_conll2003, get_fewnerd_cg, get_fewnerd_fg, get_ontonotes
 from src.query_strategies.utils import filter_invalid_token_predictions
 from src.utils import ALAnnotation, compute_metrics, init_random, tokenize_and_align_labels, verbose_performance_printing
-from src.selection_strategies.strategies import (
+from src.dataset_selection_strategies.strategies import (
     longest_sentences_dataset_sampling, 
     random_initial_dataset_sampling, 
     tfidf_initial_dataset_sampling, 
