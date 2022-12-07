@@ -30,6 +30,7 @@ def base_parser(parent_parser):
     subparser.add_argument('--annotation_strategy', type=str, default='sentence_level', choices=['sentence_level', 'entity_level', 'token_level'])
     subparser.add_argument('--append_logs_to_file', type=str, default=None)
     subparser.add_argument('--verbose', action='store_true')
+    subparser.add_argument('--fp16', action='store_true')
     subparser.add_argument('--dataset_name', type=str, default='conll2003', choices=['conll2003', 'ontonotes', 'fewnerd_cg', 'fewnerd_fg'])
     subparser.add_argument('--early_stopping_patience', type=int, default=3)
     subparser.add_argument('--train_batch_size', type=int, default=8)
