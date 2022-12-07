@@ -218,6 +218,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
         metric_for_best_model='overall_f1', 
         greater_is_better=True,
         overwrite_output_dir=True,
+        fp16=args['fp16']
     )
 
     trainer = Trainer(
