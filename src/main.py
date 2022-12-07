@@ -24,22 +24,25 @@ from src.dataset_selection_strategies.strategies import (
     )
 
 from src.query_strategies.sentence_level_strategies_tc import (
-    random_query             as sl_random_query, 
-    prediction_entropy_query as sl_prediction_entropy_query, 
-    breaking_ties_query      as sl_breaking_ties_query, 
-    least_confidence_query   as sl_least_confidence_query
+    random_query                   as sl_random_query, 
+    prediction_entropy_query       as sl_prediction_entropy_query, 
+    breaking_ties_query            as sl_breaking_ties_query, 
+    breaking_ties_bernoulli_query  as sl_breaking_ties_bernoulli_query, 
+    least_confidence_query         as sl_least_confidence_query
     )
 from src.query_strategies.entity_level_strategies_tc import (
-    random_query             as el_random_query, 
-    prediction_entropy_query as el_prediction_entropy_query, 
-    breaking_ties_query      as el_breaking_ties_query, 
-    least_confidence_query   as el_least_confidence_query
+    random_query                   as el_random_query, 
+    prediction_entropy_query       as el_prediction_entropy_query, 
+    breaking_ties_query            as el_breaking_ties_query, 
+    breaking_ties_bernoulli_query  as el_breaking_ties_bernoulli_query, 
+    least_confidence_query         as el_least_confidence_query
     )
 from src.query_strategies.token_level_strategies_tc import (
-    random_query             as tl_random_query, 
-    prediction_entropy_query as tl_prediction_entropy_query, 
-    breaking_ties_query      as tl_breaking_ties_query, 
-    least_confidence_query   as tl_least_confidence_query
+    random_query                   as tl_random_query, 
+    prediction_entropy_query       as tl_prediction_entropy_query, 
+    breaking_ties_query            as tl_breaking_ties_query, 
+    breaking_ties_bernoulli_query  as tl_breaking_ties_bernoulli_query, 
+    least_confidence_query         as tl_least_confidence_query
     )
 
 """
@@ -68,22 +71,25 @@ init_random(args['seed'])
 
 annotation_strategy_to_query_strategy_fn = {
     'sentence_level': {
-        'random_query'            : sl_random_query,
-        'prediction_entropy_query': sl_prediction_entropy_query,
-        'breaking_ties_query'     : sl_breaking_ties_query,
-        'least_confidence_query'  : sl_least_confidence_query,    
+        'random_query'                  : sl_random_query,
+        'prediction_entropy_query'      : sl_prediction_entropy_query,
+        'breaking_ties_query'           : sl_breaking_ties_query,
+        'breaking_ties_bernoulli_query' : sl_breaking_ties_bernoulli_query,
+        'least_confidence_query'        : sl_least_confidence_query,    
     },
     'entity_level': {
-        'random_query'            : el_random_query,
-        'prediction_entropy_query': el_prediction_entropy_query,
-        'breaking_ties_query'     : el_breaking_ties_query,
-        'least_confidence_query'  : el_least_confidence_query,    
+        'random_query'                  : el_random_query,
+        'prediction_entropy_query'      : el_prediction_entropy_query,
+        'breaking_ties_query'           : el_breaking_ties_query,
+        'breaking_ties_bernoulli_query' : el_breaking_ties_bernoulli_query,
+        'least_confidence_query'        : el_least_confidence_query,    
     },
     'token_level': {
-        'random_query'            : tl_random_query,
-        'prediction_entropy_query': tl_prediction_entropy_query,
-        'breaking_ties_query'     : tl_breaking_ties_query,
-        'least_confidence_query'  : tl_least_confidence_query,    
+        'random_query'                  : tl_random_query,
+        'prediction_entropy_query'      : tl_prediction_entropy_query,
+        'breaking_ties_query'           : tl_breaking_ties_query,
+        'breaking_ties_bernoulli_query' : tl_breaking_ties_bernoulli_query,
+        'least_confidence_query'        : tl_least_confidence_query,    
     },
 }
 
