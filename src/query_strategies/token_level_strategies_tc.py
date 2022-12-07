@@ -168,12 +168,13 @@ def breaking_ties_bernoulli_query(predictions: List[List[List[float]]], k=5, **k
     # A list of (sentence_id, token_position)
     sentence_and_token_ids = [(x[0], x[1]) for x in sorted_data]
     sentence_and_token_ids = filter_already_selected_sidtid_pairs(sentence_and_token_ids, kwargs.get('dataset_so_far'))
+    sentence_and_token_ids_set = set(sentence_and_token_ids)
 
     # We already selected everything
     if len(sentence_and_token_ids) == 0:
         return kwargs.get('dataset_so_far')
 
-    weights  = np.array([x[2] for x in sorted_data])
+    weights  = np.array([x[2] for x in sorted_data if (x[0], x[1]) in sentence_and_token_ids_set])
     weights  = 1/weights
     probs    = weights/np.sum(weights)
     sampled  = np.random.choice(np.array(sentence_and_token_ids, dtype="i,i"), min(k, len(sentence_and_token_ids)), p=probs, replace=False).tolist()
