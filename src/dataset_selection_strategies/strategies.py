@@ -47,6 +47,39 @@ def tfidf_initial_dataset_sampling(train_text, **kwargs):
 
     return ids.tolist()
 
+def tfidf_probabilistic_initial_dataset_sampling(train_text, **kwargs):
+
+    def top_k_mean(array, k):
+        if np.sum(array) < 1e-6:
+            return 0.0
+        # return np.max(array)
+        if k >= len(array):
+            return array.mean()
+        ind  = np.argpartition(array, -k)[-k:]
+        topk = array[ind]
+        return topk.mean()
+
+    starting_size = kwargs['starting_size']
+    topk_size     = kwargs.get('top_k_size', 5)
+
+    vectorizer = TfidfVectorizer(stop_words = 'english', ngram_range=(1,2), norm=None)
+
+    X     = vectorizer.fit_transform(train_text)
+    means = np.array([top_k_mean(X.getrow(i).data, topk_size) for i in range(X.shape[0])]) / 5 # ** 2
+    print(means)
+
+    # from numpy import savetxt
+
+    # savetxt('z_means.csv', means, delimiter=';')
+    import scipy
+    probs = scipy.special.softmax(means)
+
+    new_starting_size = int(0.8 * starting_size)
+    ids   = np.random.choice(np.arange(len(train_text)), size=starting_size, p=probs, replace=False)
+    print(ids.tolist())
+
+    return ids.tolist()
+
 
 def tfidf_kmeans_initial_dataset_sampling(train_text, **kwargs):
 
