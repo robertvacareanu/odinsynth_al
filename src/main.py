@@ -169,10 +169,14 @@ if len(args['learning_rate']) < number_of_al_iterations:
     learning_rates_list          = args['learning_rate'] + ([args['learning_rate'][-1]] * (number_of_al_iterations - len(args['learning_rate'])))
 else:
     learning_rates_list          = args['learning_rate'][:number_of_al_iterations]
+if len(args['early_stopping_patience']) < number_of_al_iterations:
+    early_stopping_patience_list = args['early_stopping_patience'] + ([args['early_stopping_patience'][-1]] * (number_of_al_iterations - len(args['early_stopping_patience'])))
+else:
+    early_stopping_patience_list = args['early_stopping_patience'][:number_of_al_iterations]
 
 all_results = []
 
-for active_learning_iteration, number_of_new_examples, epochs, learning_rate in zip(range(number_of_al_iterations), number_of_new_examples_list, epochs_list, learning_rates_list):
+for active_learning_iteration, number_of_new_examples, epochs, learning_rate, early_stopping_patience in zip(range(number_of_al_iterations), number_of_new_examples_list, epochs_list, learning_rates_list, early_stopping_patience_list):
     # Remove all checkpoints before starting a new training procedure
     for f in glob.glob(f'./outputs/{dataset_name}/checkpoint-*'):
         shutil.rmtree(f)
@@ -235,7 +239,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate in 
         tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=lambda x: compute_metrics(x[0], x[1], id_to_label, metric=metric, verbose=True),
-        callbacks=[EarlyStoppingCallback(early_stopping_patience=args['early_stopping_patience'])],
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=early_stopping_patience)],
     )
 
     trainer.train()
