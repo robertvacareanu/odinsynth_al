@@ -20,6 +20,7 @@ from src.dataset_selection_strategies.strategies import (
     longest_sentences_dataset_sampling, 
     random_initial_dataset_sampling, 
     tfidf_initial_dataset_sampling, 
+    tfidf_probabilistic_initial_dataset_sampling, 
     tfidf_kmeans_initial_dataset_sampling
     )
 
