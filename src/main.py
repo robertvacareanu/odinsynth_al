@@ -318,6 +318,8 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
             'training_annotation_style'         : args['training_annotation_style'],
             'dataset_name'                      : dataset_name,
             'total_number_of_tokens_available'  : total_number_of_tokens_available,
+            'use_postags_for_selection'         : args['use_postags_for_selection'],
+            'all_args'                          : json.dumps(args),
         }
     )
 
