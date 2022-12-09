@@ -38,7 +38,7 @@ def base_parser(parent_parser):
     subparser.add_argument('--initial_dataset_selection_strategy_top_k', type=int, default=5)
     subparser.add_argument('--use_full_dataset', action='store_true', help='If set, we will use the full dataset and would not perform any active learning')
     subparser.add_argument('--training_annotation_style', type=str, default='mask_all_unknown', choices=['mask_all_unknown', 'drop_all_unknown', 'mask_entity_looking_unknowns', 'drop_entity_looking_unknowns', 'dynamic_window'])
-    subparser.add_argument('--initial_dataset_selection_strategy', type=str, default='random_initial_dataset_sampling', choices=['random_initial_dataset_sampling', 'tfidf_initial_dataset_sampling', 'longest_sentences_dataset_sampling', 'tfidf_kmeans_initial_dataset_sampling'])
+    subparser.add_argument('--initial_dataset_selection_strategy', type=str, default='random_initial_dataset_sampling', choices=['random_initial_dataset_sampling', 'tfidf_initial_dataset_sampling', 'longest_sentences_dataset_sampling', 'tfidf_kmeans_initial_dataset_sampling', 'tfidf_probabilistic_initial_dataset_sampling'])
     subparser.add_argument('--use_postags_for_selection', action='store_true', help="If set, we will do the sampling using the part-of-speech tags, in case the `initial_dataset_selection_strategy` can use them.")
     return parent_parser
 
