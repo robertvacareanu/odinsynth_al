@@ -94,10 +94,11 @@ annotation_strategy_to_query_strategy_fn = {
 }
 
 initial_dataset_sampling_to_fn = {
-    'random_initial_dataset_sampling'      : random_initial_dataset_sampling,
-    'tfidf_initial_dataset_sampling'       : tfidf_initial_dataset_sampling,
-    'longest_sentences_dataset_sampling'   : longest_sentences_dataset_sampling,
-    'tfidf_kmeans_initial_dataset_sampling': tfidf_kmeans_initial_dataset_sampling,
+    'random_initial_dataset_sampling'             : random_initial_dataset_sampling,
+    'tfidf_initial_dataset_sampling'              : tfidf_initial_dataset_sampling,
+    'longest_sentences_dataset_sampling'          : longest_sentences_dataset_sampling,
+    'tfidf_probabilistic_initial_dataset_sampling': tfidf_probabilistic_initial_dataset_sampling,
+    'tfidf_kmeans_initial_dataset_sampling'       : tfidf_kmeans_initial_dataset_sampling,
 }
 
 dataset_name_to_fn = {
