@@ -128,6 +128,7 @@ else:
 # selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']]([' '.join(x) for x in ner_dataset['train']['tokens']], starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
 if not args['use_full_dataset']:
     text = []
+    
     for line in ner_dataset['train']:
         sent = []
         if args['use_postags_for_selection']:
@@ -141,7 +142,7 @@ if not args['use_full_dataset']:
     selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']](text, starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
 else:
     selected_indices = list(range(len(ner_dataset['train'])))
-
+pritn("Selected indices: ", selected_indices)
 selected_indices_set = set(selected_indices)
 
 # This list holds what we have selected so far
