@@ -388,3 +388,5 @@ class ALAnnotation:
             return output
         else:
             raise ValueError("Unknown annotation strategy. Is everything ok?")
+
+
