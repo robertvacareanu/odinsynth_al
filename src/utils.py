@@ -174,6 +174,18 @@ class ALAnnotation:
         
     """
     def get_training_annotations(self, annotation_strategy: str) -> List[Dict[str, Any]]:
+        # If everything is annotated
+        if all([x != 100 for x in self.al_annotated_ner_tags]):
+            output_dict = {
+                **self.original_dict,
+                'ner_tags': self.al_annotated_ner_tags,
+            }
+            return [output_dict]
+
+        
+
+        # After this point, it means that not everything is annotated
+
         # Everything that is unknown is masked
         if annotation_strategy   == 'mask_all_unknown':
             output_dict = {
