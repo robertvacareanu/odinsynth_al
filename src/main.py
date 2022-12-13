@@ -127,19 +127,24 @@ else:
 
 # selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']]([' '.join(x) for x in ner_dataset['train']['tokens']], starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
 if not args['use_full_dataset']:
-    text = []
+    text     = []
+    ner_tags = []
     
     for line in ner_dataset['train']:
         sent = []
+        ners = []
         if args['use_postags_for_selection']:
-            for token, tag in zip(line['tokens'], line['pos_tags_text']):
+            for token, tag, ner in zip(line['tokens'], line['pos_tags_text'], line['ner_tags']):
                 if 'NNP' in tag:
                     sent.append(token)
+                    ners.append(id_to_label[ner])
         else:
-            for token in line['tokens']:
+            for token, ner in zip(line['tokens'], line['ner_tags']):
                 sent.append(token)
+                ners.append(id_to_label[ner])
         text.append(' '.join(sent))
-    selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']](text, starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
+        ner_tags.append(' '.join(ners))
+    selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']](text, starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'], ner_tags=ner_tags)
 else:
     selected_indices = list(range(len(ner_dataset['train'])))
 print("Selected indices: ", selected_indices)
