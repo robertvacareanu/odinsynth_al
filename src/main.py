@@ -3,6 +3,7 @@ import json
 from collections import Counter
 import math
 import shutil
+import tqdm
 
 from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
 from transformers import DataCollatorForTokenClassification
@@ -21,7 +22,11 @@ from src.dataset_selection_strategies.strategies import (
     random_initial_dataset_sampling, 
     tfidf_initial_dataset_sampling, 
     tfidf_probabilistic_initial_dataset_sampling, 
-    tfidf_kmeans_initial_dataset_sampling
+    tfidf_kmeans_initial_dataset_sampling,
+    tfidf_most_dissimilar_initial_dataset_sampling,
+    supervised_initial_dataset_sampling,
+    tfidf_avoiding_duplicates_initial_dataset_sampling,
+    supervised_avoid_duplicates_initial_dataset_sampling
     )
 
 from src.query_strategies.sentence_level_strategies_tc import (
@@ -95,11 +100,15 @@ annotation_strategy_to_query_strategy_fn = {
 }
 
 initial_dataset_sampling_to_fn = {
-    'random_initial_dataset_sampling'             : random_initial_dataset_sampling,
-    'tfidf_initial_dataset_sampling'              : tfidf_initial_dataset_sampling,
-    'longest_sentences_dataset_sampling'          : longest_sentences_dataset_sampling,
-    'tfidf_probabilistic_initial_dataset_sampling': tfidf_probabilistic_initial_dataset_sampling,
-    'tfidf_kmeans_initial_dataset_sampling'       : tfidf_kmeans_initial_dataset_sampling,
+    'random_initial_dataset_sampling'                     : random_initial_dataset_sampling,
+    'tfidf_initial_dataset_sampling'                      : tfidf_initial_dataset_sampling,
+    'longest_sentences_dataset_sampling'                  : longest_sentences_dataset_sampling,
+    'tfidf_probabilistic_initial_dataset_sampling'        : tfidf_probabilistic_initial_dataset_sampling,
+    'tfidf_kmeans_initial_dataset_sampling'               : tfidf_kmeans_initial_dataset_sampling,
+    'tfidf_most_dissimilar_initial_dataset_sampling'      : tfidf_most_dissimilar_initial_dataset_sampling,
+    'supervised_initial_dataset_sampling'                 : supervised_initial_dataset_sampling,
+    'tfidf_avoiding_duplicates_initial_dataset_sampling'  : tfidf_avoiding_duplicates_initial_dataset_sampling,
+    'supervised_avoid_duplicates_initial_dataset_sampling': supervised_avoid_duplicates_initial_dataset_sampling,
 }
 
 dataset_name_to_fn = {
