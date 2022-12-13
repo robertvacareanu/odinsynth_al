@@ -198,13 +198,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
     for x in tqdm.tqdm(selected_indices):
         for sdsf in selected_dataset_so_far[x].get_training_annotations(args['training_annotation_style']):
             data.append(sdsf)
-        # data.append({
-        #     **ner_dataset["train"][x],
-        #     'ner_tags': selected_dataset_so_far[x].ner_tags
-        # })
-    # print("Dataset prepared")
-        
-    # data  = [{**ner_dataset["train"][x], 'ner_tags': selected_dataset_so_far[x].ner_tags} for x in selected_indices]
+
     data  = Dataset.from_list(data).map(lambda x: tokenize_and_align_labels(tokenizer, x), batched=True, load_from_cache_file=False)
     print("Dataset tokenized")
 
