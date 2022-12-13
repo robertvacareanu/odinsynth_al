@@ -194,7 +194,6 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
     # Then, overwrite the labels by using only the labels we have annotated so far
     data  = []
     # print("Prepare the dataset")
-    import tqdm
     for x in tqdm.tqdm(selected_indices):
         for sdsf in selected_dataset_so_far[x].get_training_annotations(args['training_annotation_style']):
             data.append(sdsf)
