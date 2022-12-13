@@ -207,10 +207,11 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
     selected_data_distribution = sorted(Counter([id_to_label[x] for x in [z for y in selected_dataset_so_far.values() for z in y.get_annotated_tokens()]]).items(), key=lambda x: ('Z', 'Z') if x[0] == 'O' else (x[0][2:], x[0][:2]))
     number_of_annotated_tokens = sum([x[1].number_of_annotated_tokens() for x in list(selected_dataset_so_far.items())])
     total_number_of_unmasked_tokens = len([y for x in data['labels'] for y in x if y != -100])
+    number_of_annotated_nonO_tokens = sum([1 for x in selected_dataset_so_far.values() for y in x.get_annotated_tokens() if y != 0])
     print(f"Total number of selected indices: {len(selected_indices)}")
     print(f"Total number of training sentences partially or fully annotated: {len(data)}")
     print(f"Total number of annotated tokens: {sum([x.number_of_annotated_tokens() for x in selected_dataset_so_far.values()])}")
-    print(f"Total number of non-O tokens: {sum([1 for x in selected_dataset_so_far.values() for y in x.get_annotated_tokens() if y != 0])}")
+    print(f"Total number of non-O tokens: {number_of_annotated_nonO_tokens}")
     print(f"Total number of each token type: {selected_data_distribution}")
     print(f"Total number of unmasked tokens: {total_number_of_unmasked_tokens}")
     print(f"Total number of tokens available in the dataset: {total_number_of_tokens_available}")
@@ -306,6 +307,8 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
             'query_strategy_function'           : args['query_strategy_function'],
             'number_of_al_iterations'           : args['number_of_al_iterations'],
             'number_of_annotated_tokens'        : number_of_annotated_tokens,
+            'number_of_annotated_nonO_tokens'   : number_of_annotated_nonO_tokens,
+            'total_number_of_unmasked_tokens'   : total_number_of_unmasked_tokens,
             'percentage_of_annotated_tokens'    : (number_of_annotated_tokens/total_number_of_tokens_available) * 100,
             'selected_data_distribution'        : selected_data_distribution,
             'seed'                              : args['seed'],
