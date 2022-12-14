@@ -153,7 +153,7 @@ if not args['use_full_dataset']:
                 ners.append(id_to_label[ner])
         text.append(' '.join(sent))
         ner_tags.append(' '.join(ners))
-    selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']](text, starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'], ner_tags=ner_tags)
+    selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']](text, starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'], ner_tags=ner_tags, params={'stop_words': args['stop_words'], 'ngram_range1': args['ngram_range1'], 'ngram_range2': args['ngram_range2']})
 else:
     selected_indices = list(range(len(ner_dataset['train'])))
 print("Selected indices: ", selected_indices)
