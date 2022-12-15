@@ -16,7 +16,7 @@ from src.arg_checks import do_arg_checks
 from src.arg_parser import get_argparser
 from src.dataset_utils import get_conll2003, get_fewnerd_cg, get_fewnerd_fg, get_ontonotes
 from src.query_strategies.utils import filter_invalid_token_predictions
-from src.utils import ALAnnotation, compute_metrics, init_random, tokenize_and_align_labels, verbose_performance_printing
+from src.utils import ALAnnotation, Metrics, compute_metrics, compute_metrics_fewnerd, init_random, tokenize_and_align_labels, verbose_performance_printing
 from src.dataset_selection_strategies.strategies import (
     longest_sentences_dataset_sampling, 
     random_initial_dataset_sampling, 
@@ -120,6 +120,15 @@ dataset_name_to_fn = {
     'fewnerd_fg': get_fewnerd_fg,
 }
 
+metric_name_to_fn = {
+    'compute_metrics': compute_metrics,
+    'compute_metrics_fewnerd': compute_metrics_fewnerd,
+}
+
+metric_name_to_metricobj = {
+    'compute_metrics': evaluate.load("seqeval"),
+    'compute_metrics_fewnerd': Metrics(),
+}
 
 query_strategy_function = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']][args['query_strategy_function']]
 query_random = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']]['random_query']
@@ -172,7 +181,7 @@ tokenized_ner_dataset = ner_dataset.map(lambda x: tokenize_and_align_labels(toke
 print("Everything tokenized")
 
 data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer, return_tensors="pt")
-metric = evaluate.load("seqeval")
+metric = metric_name_to_metricobj[args['metrics_name']] # evaluate.load("seqeval")
 
 
 number_of_al_iterations = args['number_of_al_iterations']
@@ -251,7 +260,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         eval_dataset=tokenized_ner_dataset["val_train"],
         tokenizer=tokenizer,
         data_collator=data_collator,
-        compute_metrics=lambda x: compute_metrics(x[0], x[1], id_to_label, metric=metric, verbose=True),
+        compute_metrics=lambda x: metric_name_to_fn[args['metrics_name']](x[0], x[1], id_to_label, metric=metric, verbose=True),
         callbacks=[EarlyStoppingCallback(early_stopping_patience=early_stopping_patience)],
     )
 

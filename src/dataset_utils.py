@@ -158,7 +158,7 @@ def get_fewnerd_cg(args):
     # Just for completeness, in case we might end up using them
 
 
-    labels = [f'B-{x.upper()}' if x != 'O' else x.upper() for x in fewnerd['train'].features['ner_tags'].feature.names]
+    labels = [x.upper() for x in fewnerd['train'].features['ner_tags'].feature.names]
     id_to_label = {i:k for (i, k) in enumerate(labels)}
     label_to_id = {v:k for (k, v) in id_to_label.items()}
 
@@ -213,7 +213,7 @@ def get_fewnerd_fg(args):
     # Just for completeness, in case we might end up using them
 
 
-    labels = [f'B-{x.upper()}' if x != 'O' else x.upper() for x in fewnerd['train'].features['fine_ner_tags'].feature.names]
+    labels = [x.upper() for x in fewnerd['train'].features['fine_ner_tags'].feature.names]
     id_to_label = {i:k for (i, k) in enumerate(labels)}
     label_to_id = {v:k for (k, v) in id_to_label.items()}
 

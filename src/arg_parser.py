@@ -32,6 +32,7 @@ def base_parser(parent_parser):
     subparser.add_argument('--verbose', action='store_true')
     subparser.add_argument('--fp16', action='store_true')
     subparser.add_argument('--dataset_name', type=str, default='conll2003', choices=['conll2003', 'ontonotes', 'fewnerd_cg', 'fewnerd_fg'])
+    subparser.add_argument('--metrics_name', type=str, default='compute_metrics', choices=['compute_metrics', 'compute_metrics_fewnerd'])
     subparser.add_argument('--early_stopping_patience', type=int, nargs='+', default=[3], help="Number of epochs to wait for improvement. We allor for multiple values, one for each active learning iteration. If not enough, we duplicate the last one. (The idea is that in the beginning we might allow for more epochs)")
     subparser.add_argument('--train_batch_size', type=int, default=8)
     subparser.add_argument('--eval_batch_size', type=int, default=16)

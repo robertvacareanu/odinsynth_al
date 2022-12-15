@@ -24,6 +24,8 @@ def do_arg_checks(args):
         raise ValueError("The learning rate must be greater than 0. Is everything ok?")
     if any([x > 0.1 for x in args['learning_rate']]):
         raise ValueError("While not exactly wrong, the learning rate seems very big. Is everything ok?")
+    if 'fewnerd' in args['dataset_name'] and args['metrics_name'] != 'compute_metrics_fewnerd':
+        raise ValueError("FewNerd needs a different evaluation metric because it uses `IO` tag format. Is everything ok?")
 
-
+ 
 
