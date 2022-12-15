@@ -247,6 +247,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         per_device_eval_batch_size=args['eval_batch_size'],
         num_train_epochs=epochs,
         weight_decay=0.01,
+        save_total_limit = 1,
         save_strategy="steps",
         load_best_model_at_end=True, 
         metric_for_best_model='overall_f1', 
