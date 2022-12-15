@@ -208,7 +208,7 @@ all_results = []
 
 for active_learning_iteration, number_of_new_examples, epochs, learning_rate, early_stopping_patience in zip(range(number_of_al_iterations), number_of_new_examples_list, epochs_list, learning_rates_list, early_stopping_patience_list):
     # Remove all checkpoints before starting a new training procedure
-    for f in glob.glob(f'./outputs/{dataset_name}/checkpoint-*'):
+    for f in glob.glob(f'{output_dir}/{dataset_name}/checkpoint-*'):
         shutil.rmtree(f)
     model = AutoModelForTokenClassification.from_pretrained(args['underlying_model'], num_labels=len(label_to_id))
 
