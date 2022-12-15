@@ -266,7 +266,8 @@ def verbose_performance_printing(predictions, ali):
     print('Overall Precision:', predictions.metrics['test_overall_precision'])
     print('Overall Recall:   ', predictions.metrics['test_overall_recall'])
     print('Overall F1:       ', predictions.metrics['test_overall_f1'])
-    print('Overall Accuracy  ', predictions.metrics['test_overall_accuracy'])
+    if 'test_overall_accuracy' in predictions.metrics:
+        print('Overall Accuracy  ', predictions.metrics['test_overall_accuracy'])
     print("Per Tag")
     tags = [x[5:].upper() for x in predictions.metrics.keys() if x not in ['test_loss', 'test_overall_precision', 'test_overall_recall', 'test_overall_f1', 'test_overall_accuracy', 'test_runtime', 'test_samples_per_second', 'test_steps_per_second']]
     for tag in tags:
