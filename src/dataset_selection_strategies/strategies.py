@@ -34,10 +34,11 @@ def tfidf_initial_dataset_sampling(train_text, **kwargs):
         topk = array[ind]
         return topk.mean()
 
+    params = kwargs.get('params', {})
     starting_size = kwargs['starting_size']
     topk_size     = kwargs.get('top_k_size', 5)
 
-    vectorizer = TfidfVectorizer(stop_words = 'english', ngram_range=(1,2), norm=None)
+    vectorizer = TfidfVectorizer(stop_words=params.get('stop_words', 'english'), ngram_range=(params.get('ngram_range1', 1),params.get('ngram_range2', 2)), norm=None)
 
     X     = vectorizer.fit_transform(train_text)
     means = np.array([top_k_mean(X.getrow(i).data, topk_size) for i in range(X.shape[0])])
