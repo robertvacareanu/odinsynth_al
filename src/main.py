@@ -75,6 +75,8 @@ print(args)
 
 init_random(args['seed'])
 
+output_dir = args['output_dir'] # './outputs'
+
 
 annotation_strategy_to_query_strategy_fn = {
     'sentence_level': {
@@ -236,7 +238,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
     print(f"Total percentage of annotated tokens: {(number_of_annotated_tokens/total_number_of_tokens_available) * 100}")
 
     training_args = TrainingArguments(
-        output_dir=f"./outputs/{dataset_name}",
+        output_dir=f"{output_dir}/{dataset_name}",
         evaluation_strategy="steps",
         save_steps=math.ceil(len(data)/(args['train_batch_size'] * 2)), # Twice every epoch
         eval_steps=math.ceil(len(data)/(args['train_batch_size'] * 2)), # Twice every epoch
