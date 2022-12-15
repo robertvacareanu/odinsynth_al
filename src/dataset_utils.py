@@ -14,6 +14,12 @@ import random
 Wrap the conll2003 info here
 Needed because, besides the `load_dataset` call,
 we might want to know the id to label mapping (i.e. `O` -> 0, etc) etc
+train: Dataset({
+    features: ['id', 'tokens', 'pos_tags', 'pos_tags_text', 'ner_tags'],
+    num_rows: 13900
+})
+>>> len([y for x in conll2003[0]['train'] for y in x['tokens']])
+201943
 """
 def get_conll2003(args):
     conll2003 = load_dataset("conll2003")
@@ -78,6 +84,12 @@ def get_conll2003(args):
 
 """
 Wrap ontonotes
+train: Dataset({
+    features: ['id', 'tokens', 'pos_tags', 'pos_tags_text', 'ner_tags'],
+    num_rows: 74552
+})
+>>> len([y for x in onto[0]['train'] for y in x['tokens']])
+1285509
 """
 def get_ontonotes(args):
     conll2012 = load_dataset('conll2012_ontonotesv5', 'english_v4')
@@ -134,6 +146,12 @@ def get_ontonotes(args):
 
 """
 Wrap FewNERD coarse-grained
+train: Dataset({
+    features: ['id', 'tokens', 'ner_tags'],
+    num_rows: 130449
+})
+>>> len([y for x in fcg[0]['train'] for y in x['tokens']])
+3195564
 """
 def get_fewnerd_cg(args):
     fewnerd = load_dataset('DFKI-SLT/few-nerd', 'supervised')
@@ -182,7 +200,13 @@ def get_fewnerd_cg(args):
     return (dataset, label_to_id, id_to_label)
 
 """
-Wrap FewNERD coarse-grained
+Wrap FewNERD fine-grained
+train: Dataset({
+    features: ['id', 'tokens', 'ner_tags'],
+    num_rows: 130449
+})
+>>> len([y for x in ffg[0]['train'] for y in x['tokens']])
+3195564
 """
 def get_fewnerd_fg(args):
     fewnerd = load_dataset('DFKI-SLT/few-nerd', 'supervised')
