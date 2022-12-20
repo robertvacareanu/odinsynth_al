@@ -4,6 +4,7 @@ There can be different (and better) ways to select the initial
 dataset than simply randomly sampling
 """
 
+from collections import defaultdict
 import random
 import numpy as np 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -267,10 +268,7 @@ def supervised_avoid_duplicates_initial_dataset_sampling(train_text, **kwargs):
 
 
 """
-Look at the ner tags before selecting
-This would represent something akin to an 
-upperbound, since in practice we do not possess
-such information
+Mostly manually-guided selection
 """
 def static_initial_dataset_sampling(train_text, **kwargs):
 
@@ -280,17 +278,45 @@ def static_initial_dataset_sampling(train_text, **kwargs):
     return [5391, 7504, 5830, 5018, 13232, 8780, 9707, 8273, 6231, 8179, 6628, 7512, 7469, 10992, 11277, 7021, 2051, 8312, 7009, 12315, 3148, 7880, 7646, 13507, 7480, 12605, 9649, 13768, 12371, 4535, 5025, 12397, 9940, 1224, 3744, 5075, 13014, 3650, 6447, 11123, 13566, 6785, 7972, 4016, 11218, 13702, 8984, 13283, 417, 7603, 12635, 2874, 4005, 5547, 7319, 13725, 10934, 13166, 8621, 4003, 10086, 670, 12834, 7947, 494, 3475, 6145, 13093, 11788, 7025, 12525, 3746, 11600, 2977, 3272, 6205, 4110, 636, 13090, 9856, 3359, 3309, 13599, 12931, 4633, 11029, 7206, 5877, 2082, 12435, 13394, 10426, 3777, 3578, 8914, 3739, 7404, 12913, 10012, 5731, 13534, 10526, 5938, 9916, 584, 11443, 13185, 13423, 2011, 13353, 12857, 11188, 228, 407, 6606, 10015, 4291, 8423, 525, 11792, 2058, 5092, 7667, 469, 5800, 4561, 13101, 1797, 5165, 3841, 3217, 1645, 8177, 5836, 11900, 2625, 178, 261, 9508]
 
 
+"""
+Look at how often the particular token is an nnp
+Favor sentences with more NNPs
+"""
+def nnp_frequency_initial_dataset_sampling(train_text, **kwargs):
+    starting_size  = kwargs['starting_size']
 
+    pos_tags = [x.split() for x in kwargs.get('pos_tags')]
+    text     = [x.split() for x in train_text]
 
+    token_to_nnp_count = defaultdict(int)
+    token_count        = defaultdict(int)
+    for sent, pos_tag in zip(text, pos_tags):
+        for token, tag in zip(sent, pos_tag):
+            token_count[token] += 1
+            if tag == 'NNP':
+                token_to_nnp_count[token] += 1
 
+    scores = []
+    for sent, pos_tag in zip(text, pos_tags):
+        if sum([1 if 'NNP' in x else 0 for x in pos_tag]) > 0:
+            score = sum([token_to_nnp_count[x]/token_count[x] for x, t in zip(sent, pos_tag) if 'NNP' in t])/sum([1 if 'NNP' in x else 0 for x in pos_tag])
+        else:
+            score = 0.0
+        scores.append(score)
 
+    # print(list(sorted(zip(scores, range(len(text))), key=lambda x: -x[0]))[:starting_size])
+    # print(list(sorted(zip(scores, range(len(text))), key=lambda x: -x[0]))[:1000])
 
+    # return [x[1] for x in sorted(zip(scores, range(len(text))), key=lambda x: -x[0])][:starting_size]
+    return [x[1] for x in sorted(zip(scores, range(len(text))), key=lambda x: -x[0])][:starting_size]
 
+    # sampling_list = []
 
-
-
-
-
-
-
+    # for i, (sent, pos_tag) in enumerate(zip(text, pos_tags)):
+    #     total_nnps = sum([1 if 'NNP' in x else 0 for x in pos_tag])
+    #     if total_nnps > 2.5 * np.log(len(sent)):
+    #         sampling_list.append(i)
+    
+    # selected_indices = random.sample(sampling_list, starting_size)
+    # return selected_indices
 

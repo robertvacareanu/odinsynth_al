@@ -173,6 +173,36 @@ def take_full_entity(labels: List[int], id_to_label: Dict[int, str], token_id) -
 
     return token_ids
 
+
+"""
+Similar with `take_full_entity` but we extend 
+to the left and right until you hit an `O`
+"""
+def take_full_entity_lr(labels: List[int], id_to_label: Dict[int, str], token_id) -> List[int]:
+    labels_str = [id_to_label[x] for x in labels]
+    # If the gold label is 'O', we annotate only that one
+    if labels_str[token_id] == 'O':
+        return [token_id]
+    
+
+    # Now we know that it is not an 'O', we have to check whether it is a
+    # Beginning of an entity (i.e. 'B-') or if it is inside (i.e. 'I-')
+    
+    token_ids = []
+    token_id_label = labels_str[token_id]
+    # Take all 'B-' or 'I-' to the left (regardless of type)
+    output_left = takewhile(lambda x: labels_str[x[0]][:2] != 'O', reversed(list(enumerate(labels_str))[:(token_id+1)]))
+    output_left = list(reversed(list(output_left)))
+
+    output_right = takewhile(lambda x: x[1][:2] != 'O', list(enumerate(labels_str))[(token_id+1):])
+    output_right = list(output_right)
+
+    token_ids += [x[0] for x in output_left] + [x[0] for x in output_right]
+
+    return token_ids
+
+
+
 """
 It is possible (although perhaps unlikely) that we select something that was already selected
 To avoid this, we filter based on what we have already selected
@@ -196,3 +226,15 @@ def collapse_same_sentenceid_tokens(sid_tid: List[Tuple[int, int]]) -> List[Tupl
         result[sid].append(tid)
 
     return list(result.items())
+
+
+if __name__ == "__main__":
+    label_to_id = {'O': 0, 'B-PER': 1, 'I-PER': 2, 'B-ORG': 3, 'I-ORG': 4, 'B-LOC': 5, 'I-LOC': 6, 'B-MISC': 7, 'I-MISC': 8}
+    id_to_label = {v:k for (k,v) in label_to_id.items()}
+    #         0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39
+    labels = [0, 1, 2, 2, 2, 1, 2, 1, 2, 3, 4, 4, 4, 0, 1, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+
+    # We give an 'O'
+    print(list(enumerate([id_to_label[x] for x in labels])))
+    output = take_full_entity_lr(labels, id_to_label, 18)
+    print(output)

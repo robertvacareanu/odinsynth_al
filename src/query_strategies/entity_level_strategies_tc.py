@@ -37,7 +37,7 @@ import numpy as np
 from scipy.stats import entropy
 from typing import Any, List, Tuple
 
-from src.query_strategies.utils import annotate, filter_already_selected_sidtid_pairs, take_full_entity
+from src.query_strategies.utils import annotate, filter_already_selected_sidtid_pairs, take_full_entity, take_full_entity_lr
 from src.utils import ALAnnotation
 
 """
@@ -79,7 +79,7 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tu
     # Collapse every selection for every sentence
     sentenceid_to_tokensid = defaultdict(list)
     for (sid, tid) in selected_data:
-        expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
+        expanded_tid = take_full_entity_lr(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
         sentenceid_to_tokensid[sid] += expanded_tid
     
     # Ensure uniqueness
@@ -124,7 +124,7 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
     # Collapse every selection for every sentence
     sentenceid_to_tokensid = defaultdict(list)
     for (sid, tid) in selected:
-        expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
+        expanded_tid = take_full_entity_lr(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
         sentenceid_to_tokensid[sid] += expanded_tid
     
     # Ensure uniqueness
@@ -163,7 +163,7 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     # Collapse every selection for every sentence
     sentenceid_to_tokensid = defaultdict(list)
     for (sid, tid) in selected:
-        expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
+        expanded_tid = take_full_entity_lr(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
         sentenceid_to_tokensid[sid] += expanded_tid
 
     # Ensure uniqueness
@@ -200,7 +200,7 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     # Collapse every selection for every sentence
     sentenceid_to_tokensid = defaultdict(list)
     for (sid, tid) in selected:
-        expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
+        expanded_tid = take_full_entity_lr(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
         sentenceid_to_tokensid[sid] += expanded_tid
     
     # Ensure uniqueness
@@ -244,7 +244,7 @@ def breaking_ties_bernoulli_query(predictions: List[List[List[float]]], k=5, **k
     # Collapse every selection for every sentence
     sentenceid_to_tokensid = defaultdict(list)
     for (sid, tid) in sampled:
-        expanded_tid = take_full_entity(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
+        expanded_tid = take_full_entity_lr(labels=dataset[sid]['ner_tags'], id_to_label=kwargs.get('id_to_label'), token_id=tid)
         sentenceid_to_tokensid[sid] += expanded_tid
 
     # Ensure uniqueness

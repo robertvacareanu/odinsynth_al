@@ -27,7 +27,8 @@ from src.dataset_selection_strategies.strategies import (
     supervised_initial_dataset_sampling,
     tfidf_avoiding_duplicates_initial_dataset_sampling,
     supervised_avoid_duplicates_initial_dataset_sampling,
-    static_initial_dataset_sampling
+    static_initial_dataset_sampling,
+    nnp_frequency_initial_dataset_sampling
     )
 
 from src.query_strategies.sentence_level_strategies_tc import (
@@ -113,6 +114,7 @@ initial_dataset_sampling_to_fn = {
     'tfidf_avoiding_duplicates_initial_dataset_sampling'  : tfidf_avoiding_duplicates_initial_dataset_sampling,
     'supervised_avoid_duplicates_initial_dataset_sampling': supervised_avoid_duplicates_initial_dataset_sampling,
     'static_initial_dataset_sampling'                     : static_initial_dataset_sampling,
+    'nnp_frequency_initial_dataset_sampling'              : nnp_frequency_initial_dataset_sampling,
 }
 
 dataset_name_to_fn = {
@@ -151,22 +153,33 @@ else:
 if not args['use_full_dataset']:
     text     = []
     ner_tags = []
+    pos_tags = []
     
     for line in ner_dataset['train']:
         sent = []
         ners = []
+        poss = []
         if args['use_postags_for_selection']:
             for token, tag, ner in zip(line['tokens'], line['pos_tags_text'], line['ner_tags']):
                 if 'NNP' in tag:
                     sent.append(token)
                     ners.append(id_to_label[ner])
+                    poss.append(tag)
         else:
-            for token, ner in zip(line['tokens'], line['ner_tags']):
-                sent.append(token)
-                ners.append(id_to_label[ner])
+            if 'pos_tags_text' in line:
+                for token, tag, ner in zip(line['tokens'], line['pos_tags_text'], line['ner_tags']):
+                    sent.append(token)
+                    ners.append(id_to_label[ner])
+                    poss.append(tag)
+            else:
+                for token, ner in zip(line['tokens'], line['ner_tags']):
+                    sent.append(token)
+                    ners.append(id_to_label[ner])
+
         text.append(' '.join(sent))
         ner_tags.append(' '.join(ners))
-    selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']](text, starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'], ner_tags=ner_tags, params={'stop_words': args['stop_words'], 'ngram_range1': args['ngram_range1'], 'ngram_range2': args['ngram_range2']})
+        pos_tags.append(' '.join(poss))
+    selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']](text, starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'], ner_tags=ner_tags, pos_tags=pos_tags, params={'stop_words': args['stop_words'], 'ngram_range1': args['ngram_range1'], 'ngram_range2': args['ngram_range2']})
 else:
     selected_indices = list(range(len(ner_dataset['train'])))
 print("Selected indices: ", selected_indices)
