@@ -320,3 +320,26 @@ def nnp_frequency_initial_dataset_sampling(train_text, **kwargs):
     # selected_indices = random.sample(sampling_list, starting_size)
     # return selected_indices
 
+
+
+"""
+Look at how often the particular token is an nnp
+Favor sentences with more NNPs
+"""
+def nnp_filter_initial_dataset_sampling(train_text, **kwargs):
+    starting_size  = kwargs['starting_size']
+    alpha          = kwargs['selection_strategy_alpha']
+
+    pos_tags = [x.split() for x in kwargs.get('pos_tags')]
+    text     = [x.split() for x in train_text]
+
+    sampling_list = []
+
+    for i, (sent, pos_tag) in enumerate(zip(text, pos_tags)):
+        total_nnps = sum([1 if 'NNP' in x else 0 for x in pos_tag])
+        if total_nnps > alpha * np.log(len(sent)):
+            sampling_list.append(i)
+
+    selected_indices = random.sample(sampling_list, starting_size)
+    return selected_indices
+
