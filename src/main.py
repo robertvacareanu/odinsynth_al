@@ -292,7 +292,13 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         # if i not in selected_indices_set:
             # unlabeled_dataset.append(tokenized_ner_dataset['train'][i])
 
-    if not args['use_full_dataset']:
+    # If we do not use the full dataset
+    # and there is still at least one more active learning iteration,
+    # then we apply the query strategy function
+    # (The reason we do not do it when this is the last active learning iteration
+    # is for efficiency; There is no reason to query again, as we will not train
+    # anymore)
+    if not args['use_full_dataset'] and active_learning_iteration + 1 < number_of_al_iterations:
         # If we use random query, we do not run the model over the train partition anymore
         # This is for speed-up purposes. Random Query does not use the model's prediction,
         # so it is not useful to compute them
