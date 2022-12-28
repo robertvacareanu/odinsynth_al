@@ -349,7 +349,7 @@ class ALAnnotation:
     """
     def get_training_annotations(self, annotation_strategy: str) -> List[Dict[str, Any]]:
         # If everything is annotated
-        if all([x != 100 for x in self.al_annotated_ner_tags]):
+        if all([x != -100 for x in self.al_annotated_ner_tags]):
             output_dict = {
                 **self.original_dict,
                 'ner_tags': self.al_annotated_ner_tags,
