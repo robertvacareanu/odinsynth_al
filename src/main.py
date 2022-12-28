@@ -252,10 +252,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
     print(f"Total number of tokens available in the dataset: {total_number_of_tokens_available}")
     print(f"Total percentage of annotated tokens: {(number_of_annotated_tokens/total_number_of_tokens_available) * 100}")
 
-    if active_learning_iteration < 3:
-        steps = math.ceil(len(data)/(args['train_batch_size'] * 2)) # Twice every epoch
-    else:
-        steps = math.ceil(len(data)/(args['train_batch_size'] * 1)) # Twice every epoch
+    steps = math.ceil(len(data)/(args['train_batch_size'] * 1)) # Once every epoch
 
 
     training_args = TrainingArguments(
