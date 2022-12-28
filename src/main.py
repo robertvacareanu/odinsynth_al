@@ -296,15 +296,15 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         # If we use random query, we do not run the model over the train partition anymore
         # This is for speed-up purposes. Random Query does not use the model's prediction,
         # so it is not useful to compute them
-        if args['query_strategy_function'] == 'random_query':
-            # No predictions if we use random_query
-            predictions_without_invalids = ner_dataset['train']['tokens']
+        # if args['query_strategy_function'] == 'random_query':
+        #     # No predictions if we use random_query
+        #     predictions_without_invalids = ner_dataset['train']['tokens']
 
-        else:
-            predictions = trainer.predict(tokenized_ner_dataset['train'])
+        # else:
+        predictions = trainer.predict(tokenized_ner_dataset['train'])
 
-            # Filter the [PAD] scores, the [CLS] scores, etc.
-            predictions_without_invalids = filter_invalid_token_predictions(predictions)
+        # Filter the [PAD] scores, the [CLS] scores, etc.
+        predictions_without_invalids = filter_invalid_token_predictions(predictions)
 
         # Overwrite the selected dataset so far
         # Particular to our implementation, the new 
