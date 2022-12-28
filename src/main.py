@@ -292,30 +292,27 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         # if i not in selected_indices_set:
             # unlabeled_dataset.append(tokenized_ner_dataset['train'][i])
 
-    # If we do not use the full dataset, then we apply the query strategy function
     if not args['use_full_dataset']:
-        # If random query, we do not run the model over the train partition anymore
+        # If we use random query, we do not run the model over the train partition anymore
+        # This is for speed-up purposes. Random Query does not use the model's prediction,
+        # so it is not useful to compute them
         if args['query_strategy_function'] == 'random_query':
-            # Overwrite the selected dataset so far
-            # Particular to our implementation, the new 
-            # data will be added to the existing data in 
-            # the query strategy function
-            selected_dataset_so_far = dict(
-                query_strategy_function(None, k=number_of_new_examples, id_to_label=id_to_label, dataset_so_far=list(selected_dataset_so_far.items()), dataset=tokenized_ner_dataset['train'])
-            )
+            # No predictions if we use random_query
+            predictions_without_invalids = None
+
         else:
             predictions = trainer.predict(tokenized_ner_dataset['train'])
 
             # Filter the [PAD] scores, the [CLS] scores, etc.
             predictions_without_invalids = filter_invalid_token_predictions(predictions)
 
-            # Overwrite the selected dataset so far
-            # Particular to our implementation, the new 
-            # data will be added to the existing data in 
-            # the query strategy function
-            selected_dataset_so_far = dict(
-                query_strategy_function(predictions_without_invalids, k=number_of_new_examples, id_to_label=id_to_label, dataset_so_far=list(selected_dataset_so_far.items()), dataset=tokenized_ner_dataset['train'])
-            )
+        # Overwrite the selected dataset so far
+        # Particular to our implementation, the new 
+        # data will be added to the existing data in 
+        # the query strategy function
+        selected_dataset_so_far = dict(
+            query_strategy_function(predictions_without_invalids, k=number_of_new_examples, id_to_label=id_to_label, dataset_so_far=list(selected_dataset_so_far.items()), dataset=tokenized_ner_dataset['train'])
+        )
 
         selected_indices_set = set(selected_dataset_so_far.keys())
         
