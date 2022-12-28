@@ -298,7 +298,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         # so it is not useful to compute them
         if args['query_strategy_function'] == 'random_query':
             # No predictions if we use random_query
-            predictions_without_invalids = ner_dataset['train']['token']
+            predictions_without_invalids = ner_dataset['train']['tokens']
 
         else:
             predictions = trainer.predict(tokenized_ner_dataset['train'])
