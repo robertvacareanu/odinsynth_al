@@ -101,7 +101,7 @@ The default function here is: `min`
 """
 def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, List[int]]]:
     aggregation_function = kwargs.get('aggregation_function', min)
-    prediction_confidence = [aggregation_function([sorted(y, reverse=True)[-1] for y in x]) for x in predictions]
+    prediction_confidence = [aggregation_function([sorted(y, reverse=True)[0] for y in x]) for x in predictions]
 
     prediction_confidence_and_indices = list(zip(range(len(prediction_confidence)), prediction_confidence))
     sorted_prediction_confidence_and_indices = sorted(prediction_confidence_and_indices, key=lambda x: x[1])
