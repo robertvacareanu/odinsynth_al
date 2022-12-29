@@ -262,6 +262,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         eval_steps=steps,
         learning_rate=learning_rate,
         per_device_train_batch_size=args['train_batch_size'],
+        dataloader_num_workers=args['dataloader_num_workers'],
         per_device_eval_batch_size=args['eval_batch_size'],
         num_train_epochs=epochs,
         weight_decay=0.01,

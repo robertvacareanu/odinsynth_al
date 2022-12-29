@@ -46,6 +46,7 @@ def base_parser(parent_parser):
     subparser.add_argument('--ngram_range1', type=int, default=1, help='Parameter for initial_dataset_strategy')
     subparser.add_argument('--ngram_range2', type=int, default=2, help='Parameter for initial_dataset_strategy')
     subparser.add_argument('--selection_strategy_alpha', type=float, default=2.0, help='Parameter for initial_dataset_strategy')
+    subparser.add_argument('--dataloader_num_workers', type=int, default=8)
     return parent_parser
 
 
