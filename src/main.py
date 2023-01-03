@@ -29,7 +29,8 @@ from src.dataset_selection_strategies.strategies import (
     supervised_avoid_duplicates_initial_dataset_sampling,
     static_initial_dataset_sampling,
     nnp_frequency_initial_dataset_sampling,
-    nnp_filter_initial_dataset_sampling
+    nnp_filter_initial_dataset_sampling,
+    models_breaking_ties_lm_predictions_dataset_sampling
     )
 
 from src.query_strategies.sentence_level_strategies_tc import (
@@ -117,6 +118,7 @@ initial_dataset_sampling_to_fn = {
     'static_initial_dataset_sampling'                     : static_initial_dataset_sampling,
     'nnp_frequency_initial_dataset_sampling'              : nnp_frequency_initial_dataset_sampling,
     'nnp_filter_initial_dataset_sampling'                 : nnp_filter_initial_dataset_sampling,
+    'models_breaking_ties_lm_predictions_dataset_sampling': models_breaking_ties_lm_predictions_dataset_sampling,
 }
 
 dataset_name_to_fn = {
