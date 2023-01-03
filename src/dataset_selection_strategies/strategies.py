@@ -343,3 +343,36 @@ def nnp_filter_initial_dataset_sampling(train_text, **kwargs):
     selected_indices = random.sample(sampling_list, starting_size)
     return selected_indices
 
+
+def models_breaking_ties_lm_predictions_dataset_sampling(train_text, **kwargs):
+    import torch
+    import tqdm
+    from transformers import AutoModelForMaskedLM, AutoTokenizer
+
+    starting_size  = kwargs['starting_size']
+    model_name     = kwargs['model_name']
+    
+    model          = AutoModelForMaskedLM.from_pretrained(model_name).to(torch.device('cuda:0')).eval()
+    tokenizer      = AutoTokenizer.from_pretrained(model_name)
+
+    scores = []
+    for sentence in tqdm.tqdm(train_text):
+        sentence_encoded = tokenizer([sentence], return_tensors='pt')
+
+        input_ids      = sentence_encoded['input_ids'].repeat(sentence_encoded['input_ids'].shape[1] - 2, 1)
+        attention_mask = sentence_encoded['input_ids'].repeat(sentence_encoded['input_ids'].shape[1] - 2, 1)
+
+        i = 0
+        for x in input_ids:
+            x[i] = tokenizer.mask_token_id
+            i += 1
+
+        with torch.no_grad():
+            output      = model(input_ids=input_ids.to(torch.device('cuda:0')), attention_mask=attention_mask.to(torch.device('cuda:0'))).logits.cpu()
+        predictions = output[torch.arange(output.size(0)), torch.arange(output.size(0)) + 1, :]
+        top_2       = torch.topk(predictions, 2, dim=1).values
+        difference  = (top_2[:, 0] - top_2[:, 1]).reshape(-1)
+        scores.append(difference.min().cpu().item())
+
+    sorted_data = sorted(enumerate(scores), key=lambda x: x[1])
+    return [x[0] for x in sorted_data[:starting_size]]
