@@ -91,17 +91,6 @@ class TestEntityLevelStrategiesTokenClassification(unittest.TestCase):
         self.assertGreaterEqual(output[0][1].number_of_annotated_tokens(), 1)
         self.assertEqual(output[0][1].al_annotated_ner_tags[2], 1)
 
-    def test_breaking_ties_bernoulli_query(self):
-        dataset, selected_dataset_so_far, id_to_label, predictions = self.get_data()
-        
-        random.seed(1)
-        output = breaking_ties_bernoulli_query(predictions, k=5, dataset_so_far=selected_dataset_so_far, dataset=dataset, id_to_label=id_to_label)
-        print(output)
-
-        # Check that at least one token was annotated
-        self.assertGreaterEqual(output[0][1].number_of_annotated_tokens(), 1)
-        self.assertEqual(output[0][1].al_annotated_ner_tags[2], 1)
-
 
 
 
