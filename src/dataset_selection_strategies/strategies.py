@@ -344,6 +344,12 @@ def nnp_filter_initial_dataset_sampling(train_text, **kwargs):
     return selected_indices
 
 
+"""
+Use an LM (code for MLM only here) to guide the selection
+of the initial dataset
+The idea is to select instances where the model has more troubles
+predicting the real token (as indicated by Breaking Ties strategy)
+"""
 def models_breaking_ties_lm_predictions_dataset_sampling(train_text, **kwargs):
     import torch
     import tqdm
@@ -357,22 +363,32 @@ def models_breaking_ties_lm_predictions_dataset_sampling(train_text, **kwargs):
 
     scores = []
     for sentence in tqdm.tqdm(train_text):
+        # Tokenize everything
         sentence_encoded = tokenizer([sentence], return_tensors='pt')
 
+        # Prepare the input_ids and attention_masks
+        # We mask each real token, 1 per turn
         input_ids      = sentence_encoded['input_ids'].repeat(sentence_encoded['input_ids'].shape[1] - 2, 1)
         attention_mask = sentence_encoded['input_ids'].repeat(sentence_encoded['input_ids'].shape[1] - 2, 1)
 
+        # Masking
         i = 0
         for x in input_ids:
             x[i] = tokenizer.mask_token_id
             i += 1
 
+        # Model's predictions
         with torch.no_grad():
             output      = model(input_ids=input_ids.to(torch.device('cuda:0')), attention_mask=attention_mask.to(torch.device('cuda:0'))).logits.cpu()
+
+        # We select the predictions for the mask tokens only
         predictions = output[torch.arange(output.size(0)), torch.arange(output.size(0)) + 1, :]
+
+        # We do the difference, as per breaking ties paradigm
         top_2       = torch.topk(predictions, 2, dim=1).values
         difference  = (top_2[:, 0] - top_2[:, 1]).reshape(-1)
         scores.append(difference.min().cpu().item())
 
+    # Sort, then take the desired number of examples
     sorted_data = sorted(enumerate(scores), key=lambda x: x[1])
     return [x[0] for x in sorted_data[:starting_size]]
