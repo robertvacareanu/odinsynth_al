@@ -328,14 +328,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         #     print("\n")
         query_strategy_fn_output = query_strategy_function(predictions_without_invalids, k=number_of_new_examples, id_to_label=id_to_label, dataset_so_far=list(selected_dataset_so_far.items()), dataset=tokenized_ner_dataset['train'])
         selected_dataset_so_far  = dict(query_strategy_fn_output.resulting_dataset)
-        if args['verbose_print_selections']:
-            print("-"*10)
-            print("ALI: ", active_learning_iteration)
-            print(active_learning_iteration, number_of_new_examples, epochs, learning_rate, early_stopping_patience)
-            print("Selections")
-            print(query_strategy_fn_output.selections)
-            print("-"*10)
-        selected_indices_set = set(selected_dataset_so_far.keys())
+        selected_indices_set     = set(selected_dataset_so_far.keys())
         
         # We do sorting to avoid any unpredictability that might have been added by the order in the dict 
         # (i.e. set([1,2,3]) is not necessarily guaranteed to have the same order in between successive runs if PYTHONHASHSEED is not set)
@@ -362,6 +355,13 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         # # verbose_performance_printing(predictions_test, active_learning_iteration)
         # print("---------TEST---------")
         # print("----------------------")
+        if args['verbose_print_selections']:
+            print("-"*10)
+            print("ALI: ", active_learning_iteration)
+            print(active_learning_iteration, number_of_new_examples, epochs, learning_rate, early_stopping_patience)
+            print("Selections")
+            print(query_strategy_fn_output.selections)
+            print("-"*10)
         
     all_results.append(
         {
