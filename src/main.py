@@ -352,11 +352,11 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         
     all_results.append(
         {
-            'active_learning_iteration': active_learning_iteration,
+            'active_learning_iteration'         : active_learning_iteration,
             'val_metrics'                       : {**predictions_val.metrics}, 
             'train-val_metrics'                 : {**predictions_tval.metrics}, 
             'test_metrics'                      : {**predictions_test.metrics}, # We record test metrics for efficiency purposes, to avoid re-running everything to gather them; Decisions are made on validation only
-            # 'all_data_distribution'     : [(id_to_label[x[0]], x[1]) for x in Counter([y for x in ner_dataset['train'].select(selected_indices)['ner_tags'] for y in x]).items()],
+            # 'all_data_distribution'             : [(id_to_label[x[0]], x[1]) for x in Counter([y for x in ner_dataset['train'].select(selected_indices)['ner_tags'] for y in x]).items()],
             'annotation_strategy'               : args['annotation_strategy'],
             'query_strategy_function'           : args['query_strategy_function'],
             'number_of_al_iterations'           : args['number_of_al_iterations'],
