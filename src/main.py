@@ -138,9 +138,11 @@ metric_name_to_metricobj = {
     'compute_metrics_fewnerd': Metrics(),
 }
 
+# Select the query strategy function from a Dict[str, Dict[str, Function]]
 query_strategy_function = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']][args['query_strategy_function']]
-query_random = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']]['random_query']
+query_random            = annotation_strategy_to_query_strategy_fn[args['annotation_strategy']]['random_query']
 
+# Select the dataset information from a Dict[str, Function]
 dataset_name=args['dataset_name']
 ner_dataset, label_to_id, id_to_label = dataset_name_to_fn[dataset_name](args)
 
