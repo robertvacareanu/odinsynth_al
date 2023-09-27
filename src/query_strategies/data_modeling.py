@@ -3,7 +3,9 @@ Data modeling for query strategies
 Concretely, we might want more information from a query strategy
 This class allows us to wrap everything we want/need here
 
-Regarding the design choice of using a `@dataclass` instead of a Dict
+Regarding the design choice of using a `@dataclass` instead of a Dict,
+a dataclass allows us to include docstrings for the variables, together
+with type annotations
 """
 
 from dataclasses import dataclass
@@ -21,4 +23,3 @@ class QueryStrategyOutput:
 
     resulting_dataset      : List[Tuple[int, ALAnnotation]]
     """The dataset after we added the current selections"""
-    
