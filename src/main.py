@@ -319,6 +319,7 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         # data will be added to the existing data in 
         # the query strategy function
         if args['verbose_print_dataset']:
+            exit()
             print("-"*10)
             print("Active Learning Iteration: ", active_learning_iteration)
             print("Params: ", number_of_new_examples, epochs, learning_rate, early_stopping_patience)
