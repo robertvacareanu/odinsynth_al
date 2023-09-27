@@ -38,6 +38,7 @@ from scipy.stats import entropy
 from typing import Any, List, Tuple
 
 from src.query_strategies.utils import annotate, filter_already_selected_sidtid_pairs, take_full_entity, take_full_entity_lr
+from src.query_strategies.data_modeling import QueryStrategyOutput
 from src.utils import ALAnnotation
 
 """
@@ -59,7 +60,7 @@ def sanity_check(predictions, other_label):
 """
 In this query implementation we just select random
 """
-def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
+def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> QueryStrategyOutput:# List[Tuple[int, ALAnnotation]]:
     sentence_and_token_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
@@ -87,14 +88,18 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tu
         sentenceid_to_tokensid[sid] = sorted(list(set(sentenceid_to_tokensid[sid])))
 
 
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
+    return QueryStrategyOutput(
+        selections              = list(sentenceid_to_tokensid.items()),
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
+    )
 
 
 """
 In this query implementation we select the top `k` by entropy
 Higher entropy means more uncertainty
 """
-def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
+def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs) -> QueryStrategyOutput:# List[Tuple[int, ALAnnotation]]:
     # Calculate the entropy of each token prediction
     entropies = [[entropy(y) for y in x] for x in predictions]
 
@@ -132,14 +137,18 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
         sentenceid_to_tokensid[sid] = sorted(list(set(sentenceid_to_tokensid[sid])))
 
 
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
+    return QueryStrategyOutput(
+        selections              = list(sentenceid_to_tokensid.items()),
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
+    )
 
 
 """
 In this query implementation we select the top `k` by difference
 between top two predictions
 """
-def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
+def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> QueryStrategyOutput:# List[Tuple[int, ALAnnotation]]:
     token_and_sentence_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
@@ -171,7 +180,11 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
         sentenceid_to_tokensid[sid] = sorted(list(set(sentenceid_to_tokensid[sid])))
 
     
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
+    return QueryStrategyOutput(
+        selections              = list(sentenceid_to_tokensid.items()),
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
+    )
 
 
 """
@@ -181,7 +194,7 @@ We use an aggregation function to transform a list of numbers (score for each to
 in the sentence) into a single number representative for the full sentence
 The default function here is: `min`
 """
-def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
+def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) -> QueryStrategyOutput:# List[Tuple[int, ALAnnotation]]:
     token_and_sentence_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
@@ -209,13 +222,17 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     for (sid, _) in selected:
         sentenceid_to_tokensid[sid] = sorted(list(set(sentenceid_to_tokensid[sid])))
     
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
+    return QueryStrategyOutput(
+        selections              = list(sentenceid_to_tokensid.items()),
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
+    )
 
 
 """
 A stochastic version of breaking ties
 """
-def breaking_ties_bernoulli_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, ALAnnotation]]:
+def breaking_ties_bernoulli_query(predictions: List[List[List[float]]], k=5, **kwargs) -> QueryStrategyOutput:# List[Tuple[int, ALAnnotation]]:
     token_and_sentence_ids = []
     for sid, sentence in enumerate(predictions):
         for tid, token in enumerate(sentence):
@@ -254,7 +271,11 @@ def breaking_ties_bernoulli_query(predictions: List[List[List[float]]], k=5, **k
         sentenceid_to_tokensid[sid] = sorted(list(set(sentenceid_to_tokensid[sid])))
 
     
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
+    return QueryStrategyOutput(
+        selections              = list(sentenceid_to_tokensid.items()),
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=list(sentenceid_to_tokensid.items()))
+    )
 
 
 """

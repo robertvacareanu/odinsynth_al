@@ -17,6 +17,7 @@ import numpy as np
 from scipy.stats import entropy
 from typing import List, Tuple
 from src.query_strategies.utils import annotate
+from src.query_strategies.data_modeling import QueryStrategyOutput
 
 from src.utils import ALAnnotation
 
@@ -34,7 +35,11 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tu
     for si in selected_indices:
         output.append(si)
 
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
+    return QueryStrategyOutput(
+        selections              = output,
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
+    )
 
 
 """
@@ -60,7 +65,11 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
     for si in selected_indices:
         output.append(si)
 
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
+    return QueryStrategyOutput(
+        selections              = output,
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
+    )
 
 
 
@@ -89,7 +98,11 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
     for si in selected_indices:
         output.append(si)
         
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
+    return QueryStrategyOutput(
+        selections              = output,
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
+    )
 
 
 """
@@ -114,7 +127,11 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
     for si in selected_indices:
         output.append(si)
 
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
+    return QueryStrategyOutput(
+        selections              = output,
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
+    )
 
 
 def breaking_ties_bernoulli_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tuple[int, List[int]]]:
@@ -141,7 +158,11 @@ def breaking_ties_bernoulli_query(predictions: List[List[List[float]]], k=5, **k
     for si in sampled:
         output.append(si)
         
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
+    return QueryStrategyOutput(
+        selections              = output,
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=output)
+    )
 
 
 

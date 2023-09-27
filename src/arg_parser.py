@@ -47,7 +47,7 @@ def base_parser(parent_parser):
     subparser.add_argument('--ngram_range2', type=int, default=2, help='Parameter for initial_dataset_strategy')
     subparser.add_argument('--selection_strategy_alpha', type=float, default=2.0, help='Parameter for initial_dataset_strategy')
     subparser.add_argument('--dataloader_num_workers', type=int, default=8)
-    subparser.add_argument('--verbose_print_dataset', action='store_true', help='If set, we will print the dataset we have so far at every active learning iteration')
+    subparser.add_argument('--verbose_print_selections', action='store_true', help='If set, we will print the dataset we have so far at every active learning iteration')
     return parent_parser
 
 

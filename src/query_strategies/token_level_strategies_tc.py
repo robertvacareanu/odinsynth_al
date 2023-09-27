@@ -30,6 +30,7 @@ from scipy.stats import entropy
 from typing import List, Tuple
 
 from src.query_strategies.utils import annotate, collapse_same_sentenceid_tokens, filter_already_selected_sidtid_pairs
+from src.query_strategies.data_modeling import QueryStrategyOutput
 from src.utils import ALAnnotation
 
 
@@ -55,7 +56,11 @@ def random_query(predictions: List[List[List[float]]], k=5, **kwargs) -> List[Tu
 
     dataset = kwargs.get('dataset')
 
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
+    return QueryStrategyOutput(
+        selections              = selected,
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
+    )
 
 
 """
@@ -87,7 +92,11 @@ def prediction_entropy_query(predictions: List[List[List[float]]], k=5, **kwargs
 
     dataset = kwargs.get('dataset')
 
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
+    return QueryStrategyOutput(
+        selections              = selected,
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
+    )
 
 """
 In this query implementation we select the top `k` by difference
@@ -115,7 +124,11 @@ def breaking_ties_query(predictions: List[List[List[float]]], k=5, **kwargs) -> 
 
     dataset = kwargs.get('dataset')
     
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
+    return QueryStrategyOutput(
+        selections              = selected,
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
+    )
 
 
 """
@@ -149,7 +162,11 @@ def least_confidence_query(predictions: List[List[List[float]]], k=5, **kwargs) 
 
     dataset = kwargs.get('dataset')
     
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
+    return QueryStrategyOutput(
+        selections              = selected,
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
+    )
 
 
 """
@@ -184,4 +201,8 @@ def breaking_ties_bernoulli_query(predictions: List[List[List[float]]], k=5, **k
 
     dataset = kwargs.get('dataset')
     
-    return annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
+    return QueryStrategyOutput(
+        selections              = selected,
+        selected_dataset_so_far = kwargs.get('dataset_so_far'),
+        resulting_dataset       = annotate(dataset=dataset, selected_dataset_so_far=kwargs.get('dataset_so_far'), selections=selected)
+    )
