@@ -156,6 +156,7 @@ else:
     starting_size       = min(int(len(ner_dataset['train']) * starting_size_ratio), len(ner_dataset['train']))
 
 # selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']]([' '.join(x) for x in ner_dataset['train']['tokens']], starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'])
+# Select the initial dataset
 if not args['use_full_dataset']:
     text     = []
     ner_tags = []
@@ -188,7 +189,7 @@ if not args['use_full_dataset']:
     selected_indices = initial_dataset_sampling_to_fn[args['initial_dataset_selection_strategy']](text, starting_size=starting_size, top_k_size=args['initial_dataset_selection_strategy_top_k'], ner_tags=ner_tags, pos_tags=pos_tags, dataset_name=args['dataset_name'], model_name=args['underlying_model'], selection_strategy_alpha=args['selection_strategy_alpha'], params={'stop_words': args['stop_words'], 'ngram_range1': args['ngram_range1'], 'ngram_range2': args['ngram_range2']})
 else:
     selected_indices = list(range(len(ner_dataset['train'])))
-print("Selected indices: ", selected_indices)
+print("Selected indices: ", selected_indices) # Print the indices, for logging purposes
 selected_indices_set = set(selected_indices)
 
 # This list holds what we have selected so far
@@ -204,7 +205,7 @@ print("Everything tokenized")
 data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer, return_tensors="pt")
 metric = metric_name_to_metricobj[args['metrics_name']] # evaluate.load("seqeval")
 
-
+# This block of code allows us to use different parameters for different active learning iterations
 number_of_al_iterations = args['number_of_al_iterations']
 if len(args['epochs']) < number_of_al_iterations:
     number_of_new_examples_list  = args['number_of_new_examples'] + ([args['number_of_new_examples'][-1]] * (number_of_al_iterations - len(args['number_of_new_examples'])))
@@ -225,6 +226,7 @@ else:
 
 all_results = []
 
+# The active learning loop
 for active_learning_iteration, number_of_new_examples, epochs, learning_rate, early_stopping_patience in zip(range(number_of_al_iterations), number_of_new_examples_list, epochs_list, learning_rates_list, early_stopping_patience_list):
     # Remove all checkpoints before starting a new training procedure
     for f in glob.glob(f'{output_dir}/{dataset_name}/checkpoint-*'):
