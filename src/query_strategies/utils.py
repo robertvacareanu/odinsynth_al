@@ -1,3 +1,7 @@
+"""
+Generic utilities for working with different annotation levels
+"""
+
 from collections import defaultdict
 from typing import Dict, List, Tuple, Union
 from itertools import takewhile
