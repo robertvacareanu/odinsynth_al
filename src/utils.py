@@ -438,7 +438,7 @@ class ALAnnotation:
             output = []
             
             # We iterate over each match
-            # Then, if a something that looks like a ner is
+            # Then, if something that looks like a ner is
             # present, we add it
             # Otherwise, we drop it
             tokens   = []
@@ -448,7 +448,7 @@ class ALAnnotation:
                 for i in range(m.start(), m.end()):
                     matches_indices.add(i)
             
-            # We iterate over ecah token
+            # We iterate over each token
             # If that token is inside the matches, we add it only if it is annotated (i.e. its label is not `-100`)
             # Otherwise, we drop it
             for (i, token, al_annotated_ner_tag) in zip(range(len(self.al_annotated_ner_tags)), self.original_dict['tokens'], self.al_annotated_ner_tags):
