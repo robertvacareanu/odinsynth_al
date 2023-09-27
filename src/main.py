@@ -318,9 +318,19 @@ for active_learning_iteration, number_of_new_examples, epochs, learning_rate, ea
         # Particular to our implementation, the new 
         # data will be added to the existing data in 
         # the query strategy function
+        if args['verbose_print_dataset']:
+            print("-"*10)
+            print("Active Learning Iteration: ", active_learning_iteration)
+            print("Params: ", number_of_new_examples, epochs, learning_rate, early_stopping_patience)
+            print("Before selection")
+            print(list(selected_dataset_so_far.items()))
+            print("\n")
         selected_dataset_so_far = dict(
             query_strategy_function(predictions_without_invalids, k=number_of_new_examples, id_to_label=id_to_label, dataset_so_far=list(selected_dataset_so_far.items()), dataset=tokenized_ner_dataset['train'])
         )
+        if args['verbose_print_dataset']:
+            print(list(selected_dataset_so_far.items()))
+            print("-"*10)
 
         selected_indices_set = set(selected_dataset_so_far.keys())
         
